@@ -60,8 +60,6 @@ const ProductForm = ({ onActionSuccess, editingProduct }) => {
       />
       {/* Hiển thị lỗi Name nếu tồn tại */}
       {errors.name && <div data-testid="name-error" style={{ color: 'red' }}>{errors.name}</div>}
-
-      {/* Input Price (Tương tự...) */}
       
       <button type="submit" data-testid="submit-product-btn">{editingProduct ? 'Cập nhật' : 'Lưu'}</button>
       {serverMessage && <div data-testid="server-message">{serverMessage}</div>}

@@ -1,12 +1,13 @@
-const VALID_CATEGORIES = ['Electronics', 'Books', 'Clothing', 'Other'];
+export const VALID_CATEGORIES = ['Electronics', 'Books', 'Clothing', 'Other'];
 
 export function validateProduct(product = {}) {
     const errors = {}; 
-    const { quantity, name, price, category } = product;
+    const { quantity, name, price, category, description } = product;
     const MAX_QUANTITY = 99999;
 	const MIN_NAME_LENGTH = 3;
 	const MAX_NAME_LENGTH = 100;
-	const MAX_PRICE = 999999999;
+    const MAX_PRICE = 999999999;
+    const MAX_DESCRIPTION_LENGTH = 500;
     
     // ================ Logic 1: Quantity Validation (GREEN cho Min/Max) ================
 
@@ -47,6 +48,14 @@ export function validateProduct(product = {}) {
 	if (category) {
         if (!VALID_CATEGORIES.includes(category)) {
             errors.category = 'Danh mục sản phẩm không hợp lệ';
+        }
+    }
+
+    // ================ Logic 5: Description Validation (optional field) ================
+    if (typeof description === 'string') {
+        const trimmedDesc = description.trim();
+        if (trimmedDesc.length > MAX_DESCRIPTION_LENGTH) {
+            errors.description = 'Mô tả sản phẩm không được vượt quá 500 ký tự';
         }
     }
 

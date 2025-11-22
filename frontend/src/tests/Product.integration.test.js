@@ -8,7 +8,8 @@ jest.mock('../services/productService');
 
 describe('Product Component Integration Tests (Form -> List)', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        // resetAllMocks sẽ xóa cả implementation queue của mockResolvedValueOnce giữa các test
+        jest.resetAllMocks();
     });
 
     test('TC-INT-01: Tạo sản phẩm mới phải tự động cập nhật danh sách', async () => {

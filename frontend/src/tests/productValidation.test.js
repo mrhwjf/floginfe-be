@@ -87,6 +87,22 @@ describe('validateProduct - Quantity rules', () => {
         expect(errors.category).toBe('Danh mục sản phẩm không hợp lệ');
     });
 
+    // ============== Description Validation Tests ===============
+    test('TC-RED-10: Should return error when Description is too long (more than 500 chars)', () => {
+        // Tạo chuỗi 501 ký tự ('X' lặp lại 501 lần)
+        const longDescription = 'X'.repeat(501); 
+        const product = { 
+            name: 'Valid Product', 
+            quantity: 10, 
+            price: 100,
+            description: longDescription // Quá 500 ký tự
+        }; 
+        const errors = validateProduct(product);
+        
+        // Khẳng định rằng lỗi Description Max Length phải tồn tại
+        expect(errors.description).toBe('Mô tả sản phẩm không được vượt quá 500 ký tự');
+    });
+
     // ============== Data Type Validation Tests ===============
     test('TC-RED-09: Should return error when Quantity is not a valid integer', () => {
         // Input Quantity là chuỗi ký tự
