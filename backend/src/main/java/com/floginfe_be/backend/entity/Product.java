@@ -1,36 +1,42 @@
 package com.floginfe_be.backend.entity;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import com.floginfe_be.backend.constants.Categories;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@Table(name = "products")
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false, updatable = false)
     private Long id;
-    @NotBlank(message = "Name cannot be blank")
-    @Size(min = 3, max = 100, message = "Name must be 3-100 characters")
+
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @Positive(message = "Price must be positive")
-    @DecimalMax(value = "999999999", inclusive = true, message = "Price must be <= 999999999")
-    private double price;
+    @Column(name = "price", nullable = false)
+    private Double price;
 
-    @Min(value = 0, message = "Quantity cannot be negative")
-    private int quantity;
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
 
-    @NotNull(message = "Category ID is required")
-    private Long categoryId;
-
-    // Constructors if needed
-    public Product() {}
-    public Product(Long id, String name, double price, int quantity, Long categoryId) {
-        this.id = id;
-        this.name = name;
-        this.price = price;
-        this.quantity = quantity;
-        this.categoryId = categoryId;
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private Categories category;
 }

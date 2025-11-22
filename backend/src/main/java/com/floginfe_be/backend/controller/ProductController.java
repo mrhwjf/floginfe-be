@@ -1,51 +1,59 @@
 package com.floginfe_be.backend.controller;
 
-import com.floginfe_be.backend.entity.Product;
-import com.floginfe_be.backend.service.impl.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
+import com.floginfe_be.backend.dto.request.ProductFilterRequest;
+import com.floginfe_be.backend.dto.request.ProductRequest;
+import com.floginfe_be.backend.dto.response.ApiResponse;
+import com.floginfe_be.backend.dto.response.PagedResponse;
+import com.floginfe_be.backend.dto.response.ProductDto;
+import com.floginfe_be.backend.service.impl.ProductServiceImpl;
+
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import com.floginfe_be.backend.dto.PagedResponse;
 
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 
 @RestController
 @RequestMapping("/api/products")
+@AllArgsConstructor
 public class ProductController {
 
-    @Autowired
-    private ProductService productService;
+    private final ProductServiceImpl productService;
 
     @PostMapping
-    public ResponseEntity<Product> create(@Valid @RequestBody Product product) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product));
+    public ResponseEntity<ApiResponse<ProductDto>> create(@Valid @RequestBody ProductRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Tạo sản phẩm thành công", productService.createProduct(request)));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(productService.getProductById(id));
+    public ResponseEntity<ApiResponse<ProductDto>> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success("Lấy sản phẩm với id " + id + " thành công",
+                productService.getProductById(id)));
     }
 
     @GetMapping
-    public ResponseEntity<PagedResponse<Product>> getAll(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search) {
-        Page<Product> pg = productService.getAllProducts(page, size, search);
-        PagedResponse<Product> dto = new PagedResponse<>(pg.getContent(), pg.getNumber(), pg.getSize(), pg.getTotalElements(), pg.getTotalPages());
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<ApiResponse<PagedResponse<ProductDto>>> getAll(
+            @Valid @ModelAttribute @ParameterObject ProductFilterRequest request,
+            @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
+        PagedResponse<ProductDto> response = productService.getAllProducts(request, pageable);
+        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách sản phẩm thành công", response));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> update(@PathVariable Long id, @Valid @RequestBody Product product) {
-        return ResponseEntity.ok(productService.updateProduct(id, product));
+    public ResponseEntity<ApiResponse<ProductDto>> update(@PathVariable Long id,
+            @Valid @RequestBody ProductRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật sản phẩm với id " + id + " thành công",
+                productService.updateProduct(id, request)));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         productService.deleteProduct(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
