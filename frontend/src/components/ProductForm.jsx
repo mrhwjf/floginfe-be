@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { validateProduct } from '../utils/productValidation.js';
+import { validateProduct, VALID_CATEGORIES } from '../utils/productValidation.js';
 import { createProduct, updateProduct } from '../services/productService.js';
+import './ProductUI.css';
 
 const ProductForm = ({ onActionSuccess, editingProduct }) => {
-  const initialState = { name: '', price: 0, quantity: 0, category: '' };
+  const initialState = { name: '', price: 0, quantity: 0, category: '', description: '' };
   const [product, setProduct] = useState(initialState);
   const [errors, setErrors] = useState({});
   const [serverMessage, setServerMessage] = useState('');
@@ -16,6 +17,7 @@ const ProductForm = ({ onActionSuccess, editingProduct }) => {
         price: editingProduct.price ?? 0,
         quantity: editingProduct.quantity ?? 0,
         category: editingProduct.category ?? '',
+        description: editingProduct.description ?? '',
       });
     } else {
       setProduct(initialState);
@@ -50,20 +52,73 @@ const ProductForm = ({ onActionSuccess, editingProduct }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      {/* Input Name */}
-      <input 
-        data-testid="name-input" 
-        value={product.name} 
-        onChange={(e) => setProduct({...product, name: e.target.value})} 
-        placeholder="Tên sản phẩm"
-      />
-      {/* Hiển thị lỗi Name nếu tồn tại */}
-      {errors.name && <div data-testid="name-error" style={{ color: 'red' }}>{errors.name}</div>}
-      
-      <button type="submit" data-testid="submit-product-btn">{editingProduct ? 'Cập nhật' : 'Lưu'}</button>
-      {serverMessage && <div data-testid="server-message">{serverMessage}</div>}
-    </form>
+    <div className="card">
+      <div className="card-header">{editingProduct ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm'}</div>
+      <form onSubmit={handleSubmit} className="form-grid">
+        {/* Name */}
+        <div className="form-control">
+          <label>Tên sản phẩm</label>
+          <input
+            data-testid="name-input"
+            value={product.name}
+            onChange={(e) => setProduct({ ...product, name: e.target.value })}
+            placeholder="Tên sản phẩm"
+          />
+          {errors.name && (
+            <div data-testid="name-error" className="error-text">{errors.name}</div>
+          )}
+        </div>
+
+        {/* Price */}
+        <div className="form-control">
+          <label>Giá</label>
+          <input
+            type="number"
+            value={product.price}
+            onChange={(e) => setProduct({ ...product, price: Number(e.target.value) })}
+            placeholder="0"
+            min="0"
+          />
+          {errors.price && <div className="error-text">{errors.price}</div>}
+        </div>
+
+        {/* Category */}
+        <div className="form-control">
+          <label>Category</label>
+          <select
+            value={product.category}
+            onChange={(e) => setProduct({ ...product, category: e.target.value })}
+          >
+            <option value="">-- Chọn Category --</option>
+            {(Array.isArray(VALID_CATEGORIES) ? VALID_CATEGORIES : ['Máy tính xách tay', 'Máy tính để bàn', 'Điện thoại thông minh', 'Máy tính bảng',
+    'Thiết bị đeo thông minh', 'Màn hình', 'Máy in', 'Phụ kiện', 'Thiết bị mạng']).map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          {errors.category && <div className="error-text">{errors.category}</div>}
+        </div>
+
+        {/* Description */}
+        <div className="form-control form-control--full">
+          <label>Mô tả</label>
+          <textarea
+            rows="3"
+            value={product.description}
+            onChange={(e) => setProduct({ ...product, description: e.target.value })}
+            placeholder="Mô tả sản phẩm (tối đa 500 ký tự)"
+          />
+          {errors.description && <div className="error-text">{errors.description}</div>}
+        </div>
+
+        {/* Submit */}
+        <div className="form-actions">
+          <button type="submit" className="btn btn-primary" data-testid="submit-product-btn">
+            {editingProduct ? 'Cập nhật' : 'Lưu'}
+          </button>
+          {serverMessage && <div data-testid="server-message" className="server-message">{serverMessage}</div>}
+        </div>
+      </form>
+    </div>
   );
 };
 

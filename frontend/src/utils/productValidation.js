@@ -1,4 +1,5 @@
-export const VALID_CATEGORIES = ['Electronics', 'Books', 'Clothing', 'Other'];
+export const VALID_CATEGORIES = ['Máy tính xách tay', 'Máy tính để bàn', 'Điện thoại thông minh', 'Máy tính bảng',
+    'Thiết bị đeo thông minh', 'Màn hình', 'Máy in', 'Phụ kiện', 'Thiết bị mạng'];
 
 export function validateProduct(product = {}) {
     const errors = {}; 

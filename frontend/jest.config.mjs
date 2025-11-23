@@ -6,4 +6,8 @@ export default {
         // Áp dụng Babel cho các file .js, .jsx, .mjs (đảm bảo nó chuyển đổi JSX)
         '^.+\\.(js|jsx|mjs)$': 'babel-jest',
     },
+  moduleNameMapper: {
+    // Bỏ qua import CSS trong Jest
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+  },
 };
