@@ -16,8 +16,8 @@ describe('Product Component Integration Tests (Form -> List)', () => {
         // 1. SETUP MOCK CHO FETCH LẦN ĐẦU: Danh sách ban đầu trống
         productService.getProducts.mockResolvedValueOnce([]); 
         
-        // 2. SETUP MOCK CHO CREATE: Tạo thành công một sản phẩm
-        const newProduct = { id: 3, name: 'Sản Phẩm Mới', price: 999 };
+        // 2. SETUP MOCK CHO CREATE: Tạo thành công một sản phẩm (có id để tránh warning key và hỗ trợ edit/delete sau này)
+        const newProduct = {id: 101, name: 'LapTop Asus', price: 999999, quantity: 10, category: 'Máy tính xách tay  ', description: 'A powerful laptop'};
         productService.createProduct.mockResolvedValue(newProduct);
         
         // 3. SETUP MOCK CHO FETCH LẦN 2 (sau khi tạo): Trả về danh sách có sản phẩm mới
@@ -30,11 +30,11 @@ describe('Product Component Integration Tests (Form -> List)', () => {
         await waitFor(() => {
             expect(screen.queryByText(/Đang tải.../i)).not.toBeInTheDocument();
             // Khẳng định danh sách ban đầu trống (Sản phẩm Mới không có)
-            expect(screen.queryByText(/Sản Phẩm Mới/i)).not.toBeInTheDocument();
+            expect(screen.queryByText(/LapTop Asus/i)).not.toBeInTheDocument();
         });
 
         // 4. Tương tác: Nhập và Submit Form
-        fireEvent.change(screen.getByTestId('name-input'), { target: { value: 'Sản Phẩm Mới' } });
+        fireEvent.change(screen.getByTestId('name-input'), { target: { value: 'LapTop Asus' } });
         // ... (Nhập các trường hợp lệ khác) ...
         fireEvent.click(screen.getByTestId('submit-product-btn'));
 
@@ -43,14 +43,14 @@ describe('Product Component Integration Tests (Form -> List)', () => {
             // Xác minh createProduct đã được gọi
             expect(productService.createProduct).toHaveBeenCalledTimes(1);
             // Xác minh List component hiển thị item mới
-            expect(screen.getByText(/Sản Phẩm Mới/i)).toBeInTheDocument();
+            expect(screen.getByText(/LapTop Asus/i)).toBeInTheDocument();
             // Khẳng định getProducts đã được gọi 2 lần (Initial load + Sau khi tạo)
             expect(productService.getProducts).toHaveBeenCalledTimes(2); 
         });
     });
 
     test('TC-INT-02: Xóa sản phẩm phải gọi service và xóa khỏi danh sách', async () => {
-        const existingProduct = { id: 10, name: 'Sản Phẩm Cũ', price: 50 };
+        const existingProduct = {id: 55, name: 'LapTop Acer', price: 50000, quantity: 5, category: 'Máy tính xách tay', description: 'An affordable laptop'};
         
         // 1. SETUP MOCK LẦN 1: Danh sách ban đầu có sản phẩm cũ
         productService.getProducts.mockResolvedValueOnce([existingProduct]); 
@@ -66,16 +66,13 @@ describe('Product Component Integration Tests (Form -> List)', () => {
         // Chờ đợi Dashboard tải xong
         await waitFor(() => {
             // Khẳng định sản phẩm ban đầu hiển thị
-            expect(screen.getByText(/Sản Phẩm Cũ/i)).toBeInTheDocument();
+            expect(screen.getByText(/LapTop Acer/i)).toBeInTheDocument();
         });
 
         // 4. Tương tác: Nhấn nút Xóa
         // Giả định list item có nút xóa với role="button" và tên là "Xóa"
         const deleteButton = screen.getByRole('button', { name: /Xóa/i });
-        fireEvent.click(deleteButton);
-        
-        // Giả định có hộp thoại xác nhận (nếu có, cần click nút Xác nhận ở đây)
-        // fireEvent.click(screen.getByRole('button', { name: /Xác nhận xóa/i })); 
+        fireEvent.click(deleteButton); 
 
         // 5. Khẳng định: Component List đã được cập nhật
         await waitFor(() => {
@@ -83,7 +80,7 @@ describe('Product Component Integration Tests (Form -> List)', () => {
             expect(productService.deleteProduct).toHaveBeenCalledWith(existingProduct.id);
             
             // Xác minh sản phẩm không còn hiển thị (List đã tự fetch lại)
-            expect(screen.queryByText(/Sản Phẩm Cũ/i)).not.toBeInTheDocument();
+            expect(screen.queryByText(/LapTop Acer/i)).not.toBeInTheDocument();
             
             // Khẳng định getProducts đã được gọi 2 lần (Initial load + Sau khi xóa)
             expect(productService.getProducts).toHaveBeenCalledTimes(2); 
@@ -91,7 +88,7 @@ describe('Product Component Integration Tests (Form -> List)', () => {
     });
 
     test('TC-INT-03: Chỉnh sửa sản phẩm phải cập nhật ProductList', async () => {
-        const originalProduct = { id: 20, name: 'Bàn Phím Cơ', price: 1000000 };
+        const originalProduct = {id: 20, name: 'Bàn Phím Cơ', price: 1000000, quantity: 15, category: 'Phụ kiện', description: 'A mechanical keyboard'};
         const updatedName = 'Bàn Phím Cơ (Đã Sale)';
         
         // 1. SETUP MOCK LẦN 1: Danh sách ban đầu có sản phẩm gốc
@@ -99,12 +96,12 @@ describe('Product Component Integration Tests (Form -> List)', () => {
         
         // 2. SETUP MOCK CHO UPDATE: Service trả về thành công khi cập nhật
         productService.updateProduct.mockResolvedValue({ 
-            id: 20, name: updatedName, price: 900000 // Dữ liệu mới
+            id: 20,
+            name: updatedName, price: 1000000, quantity: 15, category: 'Phụ kiện', description: 'A mechanical keyboard' // Dữ liệu mới
         }); 
         
         // 3. SETUP MOCK LẦN 2: Sau khi update, danh sách trả về dữ liệu mới
-        productService.getProducts.mockResolvedValueOnce([{ id: 20, name: updatedName, price: 900000 }]); 
-
+        productService.getProducts.mockResolvedValueOnce([{ id: 20, name: updatedName, price: 1000000, quantity: 15, category: 'Phụ kiện', description: 'A mechanical keyboard' }]); 
         render(<ProductDashboard />);
         
         // Chờ đợi List component tải xong và hiển thị tên gốc

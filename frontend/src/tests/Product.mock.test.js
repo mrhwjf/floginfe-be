@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-// Giả định bạn có component ProductForm và ProductList
+
 import ProductForm from '../components/ProductForm'; 
 import ProductList from '../components/ProductList'; 
 import * as productService from '../services/productService'; 
@@ -29,7 +29,7 @@ describe('Product Mock Testing (Câu 4.2.1)', () => {
 
         // 3. Khẳng định: Service được gọi và Component xử lý thành công
         await waitFor(() => {
-            // Xác minh mock đã được gọi (0.5 điểm)
+            // Xác minh mock đã được gọi
             expect(productService.createProduct).toHaveBeenCalledTimes(1); 
             // Khẳng định thông báo thành công hiển thị
             expect(screen.getByText(/Tạo sản phẩm thành công/i)).toBeInTheDocument(); 
@@ -58,8 +58,7 @@ describe('Product Mock Testing (Câu 4.2.1)', () => {
             { id: 1, name: 'Phone', price: 1000 },
             { id: 2, name: 'Mouse', price: 50 }
         ];
-        // Component ProductList hiện là presentational, nhận dữ liệu qua props.
-        // Sửa test: truyền trực tiếp mockProducts và kiểm tra render, không kỳ vọng gọi service.
+        
         render(<ProductList products={mockProducts} />);
 
         expect(screen.getByText(/Phone/i)).toBeInTheDocument();

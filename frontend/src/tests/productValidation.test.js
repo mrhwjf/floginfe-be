@@ -5,7 +5,7 @@ describe('validateProduct - Quantity rules', () => {
     //================= Quantity Validation Tests =================
 
     // TDD Cycle 1 - Sửa lại RED Phase: Kiểm tra thuộc tính 'quantity' trong đối tượng errors
-    test('should return error when quantity is negative', () => {
+    test('TC-GREEN-01 :should return error when quantity is negative', () => {
         const product = { quantity: -5 };
         const errors = validateProduct(product);
         
@@ -14,7 +14,7 @@ describe('validateProduct - Quantity rules', () => {
     });
 
     // TDD Cycle 2 - RED: Quantity vượt quá giới hạn (100000)
-    test('should return error when quantity exceeds maximum (99,999)', () => {
+    test('TC-GREEN-02: should return error when quantity exceeds maximum (99,999)', () => {
         const product = { quantity: 100000 };
         const errors = validateProduct(product);
         expect(errors.quantity).toBe('Số lượng sản phẩm không được vượt quá 99,999');
@@ -32,7 +32,6 @@ describe('validateProduct - Quantity rules', () => {
     });
 
     // --- TDD Cycle 4: Product Name Min Length (RED Phase) ---
-    // TEST NÀY SẼ THẤT BẠI (RED) CHO ĐẾN KHI BẠN THÊM LOGIC TRONG productValidation.js
     test('TC-RED-04: should return error when Product Name is too short (less than 3 chars)', () => {
         const product = { name: 'AB', quantity: 10 }; // 2 ký tự
         const errors = validateProduct(product);
@@ -88,7 +87,7 @@ describe('validateProduct - Quantity rules', () => {
     });
 
     // ============== Description Validation Tests ===============
-    test('TC-RED-10: Should return error when Description is too long (more than 500 chars)', () => {
+    test('TC-RED-09: Should return error when Description is too long (more than 500 chars)', () => {
         // Tạo chuỗi 501 ký tự ('X' lặp lại 501 lần)
         const longDescription = 'X'.repeat(501); 
         const product = { 
@@ -104,7 +103,7 @@ describe('validateProduct - Quantity rules', () => {
     });
 
     // ============== Data Type Validation Tests ===============
-    test('TC-RED-09: Should return error when Quantity is not a valid integer', () => {
+    test('TC-RED-10: Should return error when Quantity is not a valid integer', () => {
         // Input Quantity là chuỗi ký tự
         const product = { name: 'Valid Name', quantity: 'ABC', price: 100 }; 
         const errors = validateProduct(product);

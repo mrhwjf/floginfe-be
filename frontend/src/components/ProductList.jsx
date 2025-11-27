@@ -1,9 +1,6 @@
 import React from 'react';
 import './ProductUI.css';
 
-// Thêm nút Xóa & Edit cho mỗi sản phẩm để phục vụ TC-INT-02 & TC-INT-03
-// onDelete: (id) => void
-// onEdit: (product) => void
 const ProductList = ({ products = [], onDelete, onEdit }) => {
   const items = Array.isArray(products) ? products : [];
   if (!Array.isArray(products)) {

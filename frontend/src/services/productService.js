@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API_URL = '/api/products'; // Giả định API endpoint
 
-// Named exports để Jest mock dễ dàng
+// // Named exports để Jest mock dễ dàng
 // export async function createProduct(productData) {
 //     const response = await axios.post(API_URL, productData);
 //     return response.data;
@@ -34,9 +34,16 @@ const API_URL = '/api/products'; // Giả định API endpoint
 
 // =============== TEST MOCK LOCALSTORAGE =================
 const LS_KEY = 'mock_products_v1';
-// Determine whether to use LocalStorage mock.
-// Use Node/Jest env var `VITE_USE_LS_MOCK=true` to enable; default false.
-const USE_LS_MOCK = (typeof process !== 'undefined' && process.env && process.env.VITE_USE_LS_MOCK === 'true');
+
+//true để test, set false để dùng backend
+const USE_LS_MOCK = (() => {
+  // Check process.env (Node/Jest environment)
+  if (typeof process !== 'undefined' && process.env && process.env.VITE_USE_LS_MOCK === 'false') {
+    return false;
+  }
+  // Default: enable mock for development and testing
+  return true;
+})();
 const SIMULATED_DELAY_MS = 250;
 
 const SEED_DATA = [

@@ -93,7 +93,7 @@ const ProductDashboard = () => {
         });
     }, [products, search, priceMin, priceMax, qtyMin, qtyMax, cat]);
 
-    // Giả định bạn truyền hàm callback xuống ProductForm
+    // Giả định truyền hàm callback xuống ProductForm
     return (
         <div className="page">
             <div className="page-header">

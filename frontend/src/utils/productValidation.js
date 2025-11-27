@@ -36,7 +36,7 @@ export function validateProduct(product = {}) {
 
 	// ================ Logic 3: Price Validation (RED cho Min) ================
 	if (typeof price === 'number') {
-        // Thêm: Kiểm tra giá âm
+        
         if (price < 0) {
             errors.price = 'Giá sản phẩm không được nhỏ hơn 0';
         }
