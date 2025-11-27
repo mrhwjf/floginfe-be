@@ -17,4 +17,5 @@ public class ProductDto {
 	private double price;
 	private int quantity;
 	private Categories category;
+	private String description;
 }

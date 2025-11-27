@@ -39,4 +39,7 @@ public class Product {
     @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)
     private Categories category;
+
+    @Column(name = "description", nullable = false)
+    private String description;
 }

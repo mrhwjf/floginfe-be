@@ -37,19 +37,21 @@ public class ProductControllerIntegrationTest {
 		productRepository.deleteAll();
 	}
 
-	private ProductRequest buildRequest(String name, double price, int quantity, Categories category) {
+	private ProductRequest buildRequest(String name, double price, int quantity, Categories category,
+			String description) {
 		return ProductRequest.builder()
 				.name(name)
 				.price(price)
 				.quantity(quantity)
 				.category(category)
+				.description(description)
 				.build();
 	}
 
 	@Test
 	@DisplayName("POST /api/products - Create Product - 201")
 	void createProduct_Success() throws Exception {
-		ProductRequest request = buildRequest("ProdAlpha", 19999.0, 5, Categories.LAPTOP);
+		ProductRequest request = buildRequest("ProdAlpha", 19999.0, 5, Categories.LAPTOP, "description");
 
 		mockMvc.perform(post("/api/products")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -58,7 +60,8 @@ public class ProductControllerIntegrationTest {
 				.andExpect(jsonPath("$.success").value(true))
 				.andExpect(jsonPath("$.data.id").isNumber())
 				.andExpect(jsonPath("$.data.name").value("ProdAlpha"))
-				.andExpect(jsonPath("$.data.category").value("LAPTOP"));
+				.andExpect(jsonPath("$.data.category").value("LAPTOP"))
+				.andExpect(jsonPath("$.data.description").value("description"));
 	}
 
 	@Test
@@ -66,9 +69,11 @@ public class ProductControllerIntegrationTest {
 	void getAllProducts_Success() throws Exception {
 		// Create products via repository for speed
 		productRepository
-				.save(Product.builder().name("ProdOne").price(1000.0).quantity(2).category(Categories.DESKTOP).build());
+				.save(Product.builder().name("ProdOne").price(1000.0).quantity(2).category(Categories.DESKTOP)
+						.description("description").build());
 		productRepository
-				.save(Product.builder().name("ProdTwo").price(1500.0).quantity(3).category(Categories.TABLET).build());
+				.save(Product.builder().name("ProdTwo").price(1500.0).quantity(3).category(Categories.TABLET)
+						.description("description").build());
 
 		mockMvc.perform(get("/api/products"))
 				.andExpect(status().isOk())
@@ -81,23 +86,26 @@ public class ProductControllerIntegrationTest {
 	@DisplayName("GET /api/products/{id} - Get Product By ID - 200")
 	void getProductById_Success() throws Exception {
 		Long id = productRepository.save(
-				Product.builder().name("ProdGet").price(500.0).quantity(1).category(Categories.SMARTPHONE).build())
+				Product.builder().name("ProdGet").price(500.0).quantity(1).category(Categories.SMARTPHONE)
+						.description("description").build())
 				.getId();
 
 		mockMvc.perform(get("/api/products/" + id))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.success").value(true))
 				.andExpect(jsonPath("$.data.id").value(id))
-				.andExpect(jsonPath("$.data.name").value("ProdGet"));
+				.andExpect(jsonPath("$.data.name").value("ProdGet"))
+				.andExpect(jsonPath("$.data.description").value("description"));
 	}
 
 	@Test
 	@DisplayName("PUT /api/products/{id} - Update Product - 200")
 	void updateProduct_Success() throws Exception {
 		Long id = productRepository
-				.save(Product.builder().name("ProdOld").price(750.0).quantity(4).category(Categories.MONITOR).build())
+				.save(Product.builder().name("ProdOld").price(750.0).quantity(4).category(Categories.MONITOR)
+						.description("description").build())
 				.getId();
-		ProductRequest updateReq = buildRequest("ProdUpdated", 999.0, 10, Categories.MONITOR);
+		ProductRequest updateReq = buildRequest("ProdUpdated", 999.0, 10, Categories.MONITOR, "description");
 
 		mockMvc.perform(put("/api/products/" + id)
 				.contentType(MediaType.APPLICATION_JSON)
@@ -107,14 +115,16 @@ public class ProductControllerIntegrationTest {
 				.andExpect(jsonPath("$.data.id").value(id))
 				.andExpect(jsonPath("$.data.name").value("ProdUpdated"))
 				.andExpect(jsonPath("$.data.price").value(999.0))
-				.andExpect(jsonPath("$.data.quantity").value(10));
+				.andExpect(jsonPath("$.data.quantity").value(10))
+				.andExpect(jsonPath("$.data.description").value("description"));
 	}
 
 	@Test
 	@DisplayName("DELETE /api/products/{id} - Delete Product - 204")
 	void deleteProduct_Success() throws Exception {
 		Long id = productRepository
-				.save(Product.builder().name("ProdDel").price(300.0).quantity(2).category(Categories.ACCESSORY).build())
+				.save(Product.builder().name("ProdDel").price(300.0).quantity(2).category(Categories.ACCESSORY)
+						.description("description").build())
 				.getId();
 
 		mockMvc.perform(delete("/api/products/" + id))

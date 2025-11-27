@@ -33,4 +33,7 @@ public class ProductRequest {
 
 	@Enumerated(EnumType.STRING)
 	private Categories category;
+
+	@Size(max = 500, message = "Mô tả sản phẩm không được vượt quá 500 ký tự")
+	private String description;
 }

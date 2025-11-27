@@ -73,7 +73,8 @@ class ProductServiceUnitTest {
 	// quantity, Categories category,
 	// String expectedMsg) {
 
-	// ProductRequest req = new ProductRequest(name, price, quantity, category);
+	// ProductRequest req = new ProductRequest(name, price, quantity, category,
+	// "description");
 
 	// IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, ()
 	// -> service.createProduct(req));
@@ -88,12 +89,11 @@ class ProductServiceUnitTest {
 	@DisplayName("PS-TC001: Create Product - Valid Data - Success")
 	void createProduct_Valid_ReturnsDto() {
 
-		ProductRequest req = new ProductRequest("Laptop Dell", 1500.0, 10, Categories.LAPTOP);
+		ProductRequest req = new ProductRequest("Laptop Dell", 1500.0, 10, Categories.LAPTOP, "description");
 
-		Product entity = new Product(null, "Laptop Dell", 1500.0, 10, Categories.LAPTOP);
-		Product saved = new Product(1L, "Laptop Dell", 1500.0, 10, Categories.LAPTOP);
-		ProductDto dto = new ProductDto(1L, "Laptop Dell", 1500.0, 10, Categories.LAPTOP);
-
+		Product entity = new Product(null, "Laptop Dell", 1500.0, 10, Categories.LAPTOP, "description");
+		Product saved = new Product(1L, "Laptop Dell", 1500.0, 10, Categories.LAPTOP, "description");
+		ProductDto dto = new ProductDto(1L, "Laptop Dell", 1500.0, 10, Categories.LAPTOP, "description");
 		when(mapper.toEntity(req)).thenReturn(entity);
 		when(repository.existsByNameIgnoreCase("Laptop Dell")).thenReturn(false);
 		when(repository.save(entity)).thenReturn(saved);
@@ -109,8 +109,8 @@ class ProductServiceUnitTest {
 	@DisplayName("PS-TC001b: Create Product - Duplicate Name - Throws ResourceAlreadyExistsException")
 	void createProduct_DuplicateName_Throws() {
 
-		ProductRequest req = new ProductRequest("Laptop Dell", 1500.0, 10, Categories.LAPTOP);
-		Product entity = new Product(null, "Laptop Dell", 1500.0, 10, Categories.LAPTOP);
+		ProductRequest req = new ProductRequest("Laptop Dell", 1500.0, 10, Categories.LAPTOP, "description");
+		Product entity = new Product(null, "Laptop Dell", 1500.0, 10, Categories.LAPTOP, "description");
 
 		when(mapper.toEntity(req)).thenReturn(entity);
 		when(repository.existsByNameIgnoreCase("Laptop Dell")).thenReturn(true);
@@ -126,8 +126,8 @@ class ProductServiceUnitTest {
 	@DisplayName("PS-TC005: Get Product By ID - Exists - Returns DTO")
 	void getProductById_Exists_ReturnsDto() {
 
-		Product product = new Product(1L, "Laptop", 1000.0, 3, Categories.LAPTOP);
-		ProductDto dto = new ProductDto(1L, "Laptop", 1000.0, 3, Categories.LAPTOP);
+		Product product = new Product(1L, "Laptop", 1000.0, 3, Categories.LAPTOP, "description");
+		ProductDto dto = new ProductDto(1L, "Laptop", 1000.0, 3, Categories.LAPTOP, "description");
 
 		when(repository.findById(1L)).thenReturn(Optional.of(product));
 		when(mapper.toDto(product)).thenReturn(dto);
@@ -158,8 +158,8 @@ class ProductServiceUnitTest {
 		ProductFilterRequest filter = new ProductFilterRequest();
 		Pageable pageable = PageRequest.of(0, 10);
 
-		Product p = new Product(1L, "Laptop", 1000.0, 10, Categories.LAPTOP);
-		ProductDto dto = new ProductDto(1L, "Laptop", 1000.0, 10, Categories.LAPTOP);
+		Product p = new Product(1L, "Laptop", 1000.0, 10, Categories.LAPTOP, "description");
+		ProductDto dto = new ProductDto(1L, "Laptop", 1000.0, 10, Categories.LAPTOP, "description");
 
 		Page<Product> page = new PageImpl<>(List.of(p));
 
@@ -181,8 +181,8 @@ class ProductServiceUnitTest {
 
 		Pageable pageable = PageRequest.of(0, 10);
 
-		Product p = new Product(1L, "Laptop", 1000.0, 10, Categories.LAPTOP);
-		ProductDto dto = new ProductDto(1L, "Laptop", 1000.0, 10, Categories.LAPTOP);
+		Product p = new Product(1L, "Laptop", 1000.0, 10, Categories.LAPTOP, "description");
+		ProductDto dto = new ProductDto(1L, "Laptop", 1000.0, 10, Categories.LAPTOP, "description");
 
 		Page<Product> page = new PageImpl<>(List.of(p));
 
@@ -202,12 +202,11 @@ class ProductServiceUnitTest {
 	void updateProduct_Valid_ReturnsDto() {
 
 		Long id = 1L;
-		ProductRequest req = new ProductRequest("New Name", 2000.0, 5, Categories.LAPTOP);
+		ProductRequest req = new ProductRequest("New Name", 2000.0, 5, Categories.LAPTOP, "description");
 
-		Product existing = new Product(1L, "Old", 1000.0, 3, Categories.LAPTOP);
-		Product saved = new Product(1L, "New Name", 2000.0, 5, Categories.LAPTOP);
-		ProductDto dto = new ProductDto(1L, "New Name", 2000.0, 5, Categories.LAPTOP);
-
+		Product existing = new Product(1L, "Old", 1000.0, 3, Categories.LAPTOP, "description");
+		Product saved = new Product(1L, "New Name", 2000.0, 5, Categories.LAPTOP, "description");
+		ProductDto dto = new ProductDto(1L, "New Name", 2000.0, 5, Categories.LAPTOP, "description");
 		when(repository.findById(id)).thenReturn(Optional.of(existing));
 		when(repository.existsByNameIgnoreCaseAndIdNot("New Name", id)).thenReturn(false);
 
@@ -234,8 +233,8 @@ class ProductServiceUnitTest {
 	void updateProduct_DuplicateName_Throws() {
 
 		Long id = 1L;
-		ProductRequest req = new ProductRequest("DupName", 1200.0, 3, Categories.LAPTOP);
-		Product existing = new Product(1L, "Old", 1000.0, 3, Categories.LAPTOP);
+		ProductRequest req = new ProductRequest("DupName", 1200.0, 3, Categories.LAPTOP, "description");
+		Product existing = new Product(1L, "Old", 1000.0, 3, Categories.LAPTOP, "description");
 
 		when(repository.findById(id)).thenReturn(Optional.of(existing));
 		when(repository.existsByNameIgnoreCaseAndIdNot("DupName", id)).thenReturn(true);
@@ -288,26 +287,25 @@ class ProductServiceUnitTest {
 	void createProduct_MaxName_Success() {
 
 		String name = "A".repeat(100);
-		ProductRequest req = new ProductRequest(name, 100.0, 1, Categories.LAPTOP);
+		ProductRequest req = new ProductRequest(name, 100.0, 1, Categories.LAPTOP, "description");
 
-		Product entity = new Product(null, name, 100.0, 1, Categories.LAPTOP);
+		Product entity = new Product(null, name, 100.0, 1, Categories.LAPTOP, "description");
 
 		when(mapper.toEntity(req)).thenReturn(entity);
 		when(repository.existsByNameIgnoreCase(name)).thenReturn(false);
-		when(repository.save(entity)).thenReturn(new Product(1L, name, 100.0, 1, Categories.LAPTOP));
-
+		when(repository.save(entity)).thenReturn(new Product(1L, name, 100.0, 1, Categories.LAPTOP, "description"));
 		assertDoesNotThrow(() -> service.createProduct(req));
 	}
 
 	@Test
 	@DisplayName("Extra: Create Product With Min Price (0.01) – Success")
 	void createProduct_MinPrice_Success() {
-		ProductRequest req = new ProductRequest("Valid", 0.01, 0, Categories.LAPTOP);
-		Product entity = new Product(null, "Valid", 0.01, 0, Categories.LAPTOP);
+		ProductRequest req = new ProductRequest("Valid", 0.01, 0, Categories.LAPTOP, "description");
+		Product entity = new Product(null, "Valid", 0.01, 0, Categories.LAPTOP, "description");
 
 		when(mapper.toEntity(req)).thenReturn(entity);
 		when(repository.existsByNameIgnoreCase("Valid")).thenReturn(false);
-		when(repository.save(entity)).thenReturn(new Product(1L, "Valid", 0.01, 0, Categories.LAPTOP));
+		when(repository.save(entity)).thenReturn(new Product(1L, "Valid", 0.01, 0, Categories.LAPTOP, "description"));
 
 		assertDoesNotThrow(() -> service.createProduct(req));
 	}
