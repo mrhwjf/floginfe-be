@@ -17,6 +17,4 @@ public interface ProductService {
 	ProductDto getProductById(Long id);
 
 	PagedResponse<ProductDto> getAllProducts(ProductFilterRequest request, Pageable pageable);
-
-	// boolean validateNull(ProductRequest request);
 }

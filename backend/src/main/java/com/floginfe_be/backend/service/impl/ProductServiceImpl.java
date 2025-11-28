@@ -31,6 +31,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper mapper;
 
     public ProductDto createProduct(ProductRequest request) {
+        validateProduct(request);
         Product product = mapper.toEntity(request);
         if (repository.existsByNameIgnoreCase(product.getName())) {
             throw new ResourceAlreadyExistsException("Product name already exists!");
@@ -67,19 +68,43 @@ public class ProductServiceImpl implements ProductService {
         return PagedResponseMapper.fromPage(pg, mapper::toDto);
     }
 
-    // public boolean validateNull(ProductRequest request) {
-    // if (request.getName() == null || request.getName().isBlank()) {
-    // throw new IllegalArgumentException("Name cannot be blank");
-    // }
-    // if (request.getPrice() == null || request.getPrice() <= 0) {
-    // throw new IllegalArgumentException("Price must be positive");
-    // }
-    // if (request.getQuantity() == null || request.getQuantity() < 0) {
-    // throw new IllegalArgumentException("Quantity cannot be negative");
-    // }
-    // if (request.getCategory() == null) {
-    // throw new IllegalArgumentException("Category is required");
-    // }
-    // return true;
-    // }
+    private void validateProduct(ProductRequest request) {
+
+        // -------- Name ----------
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new IllegalArgumentException("Tên sản phẩm không được để trống");
+        }
+        int nameLen = request.getName().length();
+        if (nameLen < 3 || nameLen > 100) {
+            throw new IllegalArgumentException("Tên sản phẩm phải từ 3 đến 100 ký tự");
+        }
+
+        // -------- Price ----------
+        if (request.getPrice() == null || request.getPrice() <= 0) {
+            throw new IllegalArgumentException("Giá sản phẩm phải là số dương");
+        }
+        if (request.getPrice() > 999_999_999) {
+            throw new IllegalArgumentException("Giá sản phẩm phải <= 999.999.999");
+        }
+
+        // -------- Quantity ----------
+        if (request.getQuantity() == null || request.getQuantity() < 0) {
+            throw new IllegalArgumentException("Số lượng phải là số không âm");
+        }
+        if (request.getQuantity() > 99_999) {
+            throw new IllegalArgumentException("Số lượng phải <= 99999");
+        }
+
+        // -------- Category (enum) ----------
+        if (request.getCategory() == null) {
+            throw new IllegalArgumentException("Danh mục phải nằm trong danh sách đã cho");
+        }
+
+        // -------- Description ----------
+        if (request.getDescription() != null
+                && request.getDescription().length() > 500) {
+            throw new IllegalArgumentException("Mô tả sản phẩm không được vượt quá 500 ký tự");
+        }
+    }
+
 }

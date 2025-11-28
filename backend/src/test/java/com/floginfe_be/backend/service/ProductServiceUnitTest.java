@@ -2,6 +2,7 @@ package com.floginfe_be.backend.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -59,28 +60,25 @@ class ProductServiceUnitTest {
 	// -----------------------------------------------------------
 	// PS-TC002…PS-TC006 – Validation (Negative tests from docx)
 	// -----------------------------------------------------------
-	// @ParameterizedTest
-	// @CsvSource({
-	// "'', 1000.0, 5, LAPTOP, Tên sản phẩm không được để trống",
-	// "ab, 1000.0, 5, LAPTOP, Tên sản phẩm phải từ 3 đến 100 ký tự",
-	// "ValidName, -100.0, 5, LAPTOP, Giá sản phẩm phải là số dương",
-	// "ValidName, 1000.0, -1, LAPTOP, Số lượng phải là số không âm",
-	// "ValidName, 1000.0, 5, , Danh mục là bắt buộc"
-	// })
-	// @DisplayName("PS-TC002–TC006: Create - Invalid Request Data - Throws
-	// IllegalArgumentException")
-	// void createProduct_InvalidRequest_Throws(String name, double price, int
-	// quantity, Categories category,
-	// String expectedMsg) {
+	@ParameterizedTest
+	@CsvSource({
+			"'', 1000.0, 5, LAPTOP, Tên sản phẩm không được để trống",
+			"ab, 1000.0, 5, LAPTOP, Tên sản phẩm phải từ 3 đến 100 ký tự",
+			"ValidName, -100.0, 5, LAPTOP, Giá sản phẩm phải là số dương",
+			"ValidName, 1000.0, -1, LAPTOP, Số lượng phải là số không âm",
+			"ValidName, 1000.0, 5, , Danh mục phải nằm trong danh sách đã cho"
+	})
+	@DisplayName("PS-TC002–TC006: Create - Invalid Request Data - Throws IllegalArgumentException")
+	void createProduct_InvalidRequest_Throws(String name, double price, int quantity, Categories category,
+			String expectedMsg) {
 
-	// ProductRequest req = new ProductRequest(name, price, quantity, category,
-	// "description");
+		ProductRequest req = new ProductRequest(name, price, quantity, category,
+				"description");
 
-	// IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, ()
-	// -> service.createProduct(req));
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> service.createProduct(req));
 
-	// assertEquals(expectedMsg, ex.getMessage());
-	// }
+		assertEquals(expectedMsg, ex.getMessage());
+	}
 
 	// -----------------------------------------------------------
 	// PS-TC001 – Create Success

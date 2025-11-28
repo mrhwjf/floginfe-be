@@ -5,7 +5,7 @@ import com.floginfe_be.backend.dto.request.ProductRequest;
 import com.floginfe_be.backend.dto.response.ApiResponse;
 import com.floginfe_be.backend.dto.response.PagedResponse;
 import com.floginfe_be.backend.dto.response.ProductDto;
-import com.floginfe_be.backend.service.impl.ProductServiceImpl;
+import com.floginfe_be.backend.service.ProductService;
 
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +22,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class ProductController {
 
-    private final ProductServiceImpl productService;
+    private final ProductService productService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<ProductDto>> create(@Valid @RequestBody ProductRequest request) {
