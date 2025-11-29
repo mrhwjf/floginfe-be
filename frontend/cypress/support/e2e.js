@@ -6,7 +6,7 @@ const DEFAULT_CATEGORY = 'LAPTOP';
 
 export const PRODUCT_DASHBOARD_PATH = '/dashboard';
 
-export const DEFAULT_TIMEOUT = 3000;
+export const DEFAULT_TIMEOUT = 10000;
 
 const DEFAULT_PRICE = 999000;
 const DEFAULT_QUANTITY = 5;

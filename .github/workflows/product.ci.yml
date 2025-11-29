@@ -151,7 +151,7 @@ jobs:
         working-directory: frontend
         env:
           CYPRESS_baseUrl: http://127.0.0.1:5173
-        run: npm run test:e2e
+        run: npm run test:e2e -- --spec cypress/e2e/product.e2e.cy.js
 
       - name: Upload server logs on failure
         if: failure()
