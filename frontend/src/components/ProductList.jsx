@@ -24,11 +24,11 @@ const ProductList = ({ products = [], onDelete, onEdit }) => {
           <tbody>
             {items.map((p) => (
               <tr key={p.id} data-testid="product-item">
-                <td>{p?.name ?? '-'}</td>
-                <td>{p?.price ?? '-'}</td>
-                <td>{p?.quantity ?? '-'}</td>
-                <td>{p?.category ?? '-'}</td>
-                <td className="desc-cell">{p?.description ?? '-'}</td>
+                <td data-testid="cell-name">{p?.name ?? '-'}</td>
+                <td data-testid="cell-price">{p?.price ?? '-'}</td>
+                <td data-testid="cell-quantity">{p?.quantity ?? '-'}</td>
+                <td data-testid="cell-category">{p?.category ?? '-'}</td>
+                <td data-testid="cell-description" className="desc-cell">{p?.description ?? '-'}</td>
                 <td className="actions">
                   <button
                     type="button"
@@ -41,6 +41,7 @@ const ProductList = ({ products = [], onDelete, onEdit }) => {
                   <button
                     type="button"
                     className="btn btn-danger"
+                    data-testid={`delete-${p.id}`}
                     onClick={() => onDelete && onDelete(p.id)}
                   >
                     Xóa

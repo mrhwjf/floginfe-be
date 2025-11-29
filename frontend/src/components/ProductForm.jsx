@@ -34,12 +34,12 @@ const ProductForm = ({ onActionSuccess, editingProduct }) => {
         let result;
         if (editingProduct) {
           // Chế độ cập nhật
-            result = await updateProduct(editingProduct.id, product);
-            setServerMessage(result?.message || 'Cập nhật sản phẩm thành công');
+          result = await updateProduct(editingProduct.id, product);
+          setServerMessage(result?.message || 'Cập nhật sản phẩm thành công');
         } else {
-            // Chế độ tạo mới
-            result = await createProduct(product);
-            setServerMessage(result?.message || 'Tạo sản phẩm thành công');
+          // Chế độ tạo mới
+          result = await createProduct(product);
+          setServerMessage(result?.message || 'Tạo sản phẩm thành công');
         }
 
         if (onActionSuccess) {
@@ -54,7 +54,7 @@ const ProductForm = ({ onActionSuccess, editingProduct }) => {
   return (
     <div className="card">
       <div className="card-header">{editingProduct ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm'}</div>
-      <form onSubmit={handleSubmit} className="form-grid">
+      <form onSubmit={handleSubmit} className="form-grid" data-testid="product-form">
         {/* Name */}
         <div className="form-control">
           <label>Tên sản phẩm</label>
@@ -74,26 +74,42 @@ const ProductForm = ({ onActionSuccess, editingProduct }) => {
           <label>Giá</label>
           <input
             type="number"
+            data-testid="price-input"
             value={product.price}
             onChange={(e) => setProduct({ ...product, price: Number(e.target.value) })}
-            placeholder="0"
-            min="0"
+          // placeholder="0"
+          // min="0"
           />
           {errors.price && <div className="error-text">{errors.price}</div>}
+        </div>
+
+        {/* Quantity */}
+        <div className="form-control">
+          <label>Số lượng</label>
+          <input
+            type="number"
+            data-testid="quantity-input"
+            value={product.quantity}
+            onChange={(e) => setProduct({ ...product, quantity: Number(e.target.value) })}
+          // placeholder="0"
+          // min="0"
+          />
+          {errors.quantity && <div className="error-text">{errors.quantity}</div>}
         </div>
 
         {/* Category */}
         <div className="form-control">
           <label>Category</label>
           <select
+            data-testid="category-select"
             value={product.category}
             onChange={(e) => setProduct({ ...product, category: e.target.value })}
           >
             <option value="">-- Chọn Category --</option>
             {(Array.isArray(VALID_CATEGORIES) ? VALID_CATEGORIES : ['Máy tính xách tay', 'Máy tính để bàn', 'Điện thoại thông minh', 'Máy tính bảng',
-    'Thiết bị đeo thông minh', 'Màn hình', 'Máy in', 'Phụ kiện', 'Thiết bị mạng']).map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
+              'Thiết bị đeo thông minh', 'Màn hình', 'Máy in', 'Phụ kiện', 'Thiết bị mạng']).map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
           </select>
           {errors.category && <div className="error-text">{errors.category}</div>}
         </div>
@@ -103,6 +119,7 @@ const ProductForm = ({ onActionSuccess, editingProduct }) => {
           <label>Mô tả</label>
           <textarea
             rows="3"
+            data-testid="description-input"
             value={product.description}
             onChange={(e) => setProduct({ ...product, description: e.target.value })}
             placeholder="Mô tả sản phẩm (tối đa 500 ký tự)"

@@ -41,7 +41,7 @@
   padding: 12px 16px;
   font-weight: 600;
   border-bottom: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .card-body {
@@ -49,19 +49,55 @@
 }
 
 /* Filters */
-.filters .filters-body { padding: 12px 16px; }
-.filters .filters-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.filters .filters-actions { margin-top: 8px; display: flex; justify-content: flex-end; }
+.filters .filters-body {
+  padding: 12px 16px;
+}
+
+.filters .filters-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.filters .filters-actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+}
 
 /* Form */
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px 16px; }
-.form-control { display: flex; flex-direction: column; gap: 6px; }
-.form-control--full { grid-column: 1 / -1; }
-.form-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; }
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px 16px;
+}
 
-label { font-size: 0.9rem; color: var(--text-muted); }
+.form-control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
-input, select, textarea {
+.form-control--full {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+input,
+select,
+textarea {
   background: #dbdfe9;
   color: var(--text);
   border: 1px solid var(--border);
@@ -73,21 +109,58 @@ input, select, textarea {
   box-sizing: border-box;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-.error-text { color: #fca5a5; font-size: 0.85rem; }
-.server-message { color: var(--text-muted); }
+.error-text {
+  color: #fca5a5;
+  font-size: 0.85rem;
+}
+
+.server-message {
+  color: var(--text-muted);
+}
 
 /* Table */
-.table-wrapper { width: 100%; overflow: auto; }
-.product-table { width: 100%; border-collapse: collapse; }
-.product-table th, .product-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
-.product-table thead th { position: sticky; top: 0; background: #ffffff; z-index: 1; }
-.desc-cell { max-width: 360px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.actions { display: flex; gap: 8px; }
+.table-wrapper {
+  width: 100%;
+  overflow: auto;
+}
+
+.product-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.product-table th,
+.product-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.product-table thead th {
+  position: sticky;
+  top: 0;
+  background: #ffffff;
+  z-index: 1;
+}
+
+.desc-cell {
+  max-width: 360px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
 
 /* Buttons */
 .btn {
@@ -98,20 +171,55 @@ input:focus, select:focus, textarea:focus {
   border-radius: 8px;
   cursor: pointer;
 }
-.btn:hover { background: var(--accent-2); border-color: var(--accent-2); }
 
-.btn-primary { background: var(--accent); border-color: var(--accent); color: white;  }
-.btn-primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
+.btn:hover {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+}
 
-.btn-secondary { color: rgb(0, 0, 0); background: #f5f3a6; }
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
 
-.btn-danger { background: var(--danger); border-color: var(--danger); color: rgb(0, 0, 0); }
-.btn-danger:hover { background: var(--danger-2); border-color: var(--danger-2); }
+.btn-primary:hover {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+}
+
+.btn-secondary {
+  color: rgb(0, 0, 0);
+  background: #f5f3a6;
+}
+
+.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: rgb(0, 0, 0);
+}
+
+.btn-danger:hover {
+  background: var(--danger-2);
+  border-color: var(--danger-2);
+}
 
 /* Content */
-.content { display: flex; flex-direction: column; gap: 16px; }
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .layout { grid-template-columns: 1fr; }
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
 }
