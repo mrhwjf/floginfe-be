@@ -1,4 +1,4 @@
-CREATE DATABASE IF NOT EXISTS flogin;
+CREATE DATABASE IF NOT EXISTS flogin CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE flogin;
 
 CREATE TABLE products (
