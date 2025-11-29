@@ -63,7 +63,7 @@ class AuthControllerMockTest {
     void testMockAuthServiceValidationError() throws Exception {
         // Arrange 
         when(authService.validateLogin(anyString(), anyString()))
-                .thenReturn("Ten dang nhap phai tu 3 den 50 ky tu");
+                .thenReturn("Username must be between 3 and 50 characters");
 
         LoginRequest request = new LoginRequest();
         request.setUsername("ab");
@@ -75,7 +75,7 @@ class AuthControllerMockTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Ten dang nhap phai tu 3 den 50 ky tu"));
+                .andExpect(jsonPath("$.message").value("Username must be between 3 and 50 characters"));
     }
 
     @Test
@@ -169,7 +169,7 @@ class AuthControllerMockTest {
     void testControllerSkipsAuthenticateOnValidationError() throws Exception {
         // Arrange
         when(authService.validateLogin("", "Pass123"))
-                .thenReturn("Ten dang nhap khong duoc de trong");
+                .thenReturn("Username is required");
 
         LoginRequest request = new LoginRequest();
         request.setUsername("");

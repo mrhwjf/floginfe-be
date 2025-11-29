@@ -25,24 +25,24 @@ public class AuthServiceImpl implements AuthService {
     public String validateLogin(String username, String password) {
         // Validate username
         if (username == null || username.trim().isEmpty()) {
-            return "Ten dang nhap khong duoc de trong";
+            return "Username is required";
         }
         if (username.length() < 3 || username.length() > 50) {
-            return "Ten dang nhap phai tu 3 den 50 ky tu";
+            return "Username must be between 3 and 50 characters";
         }
         if (!username.matches("^[a-zA-Z0-9]+$")) {
-            return "Ten dang nhap chi co the chua chu cai va so";
+            return "Invalid username format";
         }
 
         // Validate password
         if (password == null || password.trim().isEmpty()) {
-            return "Mat khau khong duoc de trong";
+            return "Password is required";
         }
         if (password.length() < 6 || password.length() > 100) {
-            return "Mat khau phai tu 6 den 100 ky tu";
+            return "Password must be between 6 and 100 characters";
         }
         if (!password.matches("^(?=.*[a-zA-Z])(?=.*\\d).+$")) {
-            return "Mat khau phai chua it nhat mot chu cai va mot so";
+            return "Password must contain at least one letter and one number";
         }
 
         return ""; // No validation errors

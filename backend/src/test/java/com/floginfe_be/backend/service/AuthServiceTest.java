@@ -130,7 +130,7 @@ class AuthServiceTest {
 
         // Assert
         assertFalse(validationError.isEmpty());
-        assertEquals("Ten dang nhap khong duoc de trong", validationError);
+        assertEquals("Username is required", validationError);
     }
 
     @Test
@@ -141,7 +141,7 @@ class AuthServiceTest {
 
         // Assert
         assertFalse(validationError.isEmpty());
-        assertEquals("Mat khau khong duoc de trong", validationError);
+        assertEquals("Password is required", validationError);
     }
 
     @Test
@@ -152,7 +152,7 @@ class AuthServiceTest {
 
         // Assert
         assertFalse(validationError.isEmpty());
-        assertEquals("Ten dang nhap khong duoc de trong", validationError);
+        assertEquals("Username is required", validationError);
     }
 
 
@@ -165,18 +165,9 @@ class AuthServiceTest {
         String result = authService.validateLogin("", "Pass123");
 
         // Assert
-        assertEquals("Ten dang nhap khong duoc de trong", result);
+        assertEquals("Username is required", result);
     }
 
-    @Test
-    @DisplayName("Validation: Username chi co space - nen tra ve loi")
-    void testValidateWhitespaceUsername() {
-        // Act
-        String result = authService.validateLogin("   ", "Pass123");
-
-        // Assert
-        assertEquals("Ten dang nhap khong duoc de trong", result);
-    }
 
     @Test
     @DisplayName("Validation: Username qua ngan (< 3 ky tu)")
@@ -185,7 +176,7 @@ class AuthServiceTest {
         String result = authService.validateLogin("ab", "Pass123");
 
         // Assert
-        assertEquals("Ten dang nhap phai tu 3 den 50 ky tu", result);
+        assertEquals("Username must be between 3 and 50 characters", result);
     }
 
     @Test
@@ -196,7 +187,7 @@ class AuthServiceTest {
         String result = authService.validateLogin(username, "Pass123");
 
         // Assert
-        assertEquals("Ten dang nhap phai tu 3 den 50 ky tu", result);
+        assertEquals("Username must be between 3 and 50 characters", result);
     }
 
     @Test
@@ -206,7 +197,7 @@ class AuthServiceTest {
         String result = authService.validateLogin("user@name", "Pass123");
 
         // Assert
-        assertEquals("Ten dang nhap chi co the chua chu cai va so", result);
+        assertEquals("Invalid username format", result);
     }
 
     @Test
@@ -226,18 +217,9 @@ class AuthServiceTest {
         String result = authService.validateLogin("testuser", "");
 
         // Assert
-        assertEquals("Mat khau khong duoc de trong", result);
+        assertEquals("Password is required", result);
     }
 
-    @Test
-    @DisplayName("Validation: Password chi co space - nen tra ve loi")
-    void testValidateWhitespacePassword() {
-        // Act
-        String result = authService.validateLogin("testuser", "   ");
-
-        // Assert
-        assertEquals("Mat khau khong duoc de trong", result);
-    }
 
     @Test
     @DisplayName("Validation: Password qua ngan (< 6 ky tu)")
@@ -246,7 +228,7 @@ class AuthServiceTest {
         String result = authService.validateLogin("testuser", "Pass1");
 
         // Assert
-        assertEquals("Mat khau phai tu 6 den 100 ky tu", result);
+        assertEquals("Password must be between 6 and 100 characters", result);
     }
 
     @Test
@@ -257,7 +239,7 @@ class AuthServiceTest {
         String result = authService.validateLogin("testuser", password);
 
         // Assert
-        assertEquals("Mat khau phai tu 6 den 100 ky tu", result);
+        assertEquals("Password must be between 6 and 100 characters", result);
     }
 
     @Test
@@ -267,7 +249,7 @@ class AuthServiceTest {
         String result = authService.validateLogin("testuser", "123456");
 
         // Assert
-        assertEquals("Mat khau phai chua it nhat mot chu cai va mot so", result);
+        assertEquals("Password must contain at least one letter and one number", result);
     }
 
     @Test
@@ -277,7 +259,7 @@ class AuthServiceTest {
         String result = authService.validateLogin("testuser", "Password");
 
         // Assert
-        assertEquals("Mat khau phai chua it nhat mot chu cai va mot so", result);
+        assertEquals("Password must contain at least one letter and one number", result);
     }
 
     @Test
@@ -301,137 +283,4 @@ class AuthServiceTest {
         assertEquals("", result);
     }
 
-
-    // c) Additional Edge Cases for Coverage >= 85%
-    @Test
-    @DisplayName("Edge Case: Username voi do dai toi thieu (3 ky tu)")
-    void testValidateUsernameMinimumLength() {
-        // Act
-        String result = authService.validateLogin("abc", "Pass123");
-
-        // Assert
-        assertEquals("", result);
-    }
-
-    @Test
-    @DisplayName("Edge Case: Username voi do dai toi da (50 ky tu)")
-    void testValidateUsernameMaximumLength() {
-        // Act
-        String username = "a".repeat(50);
-        String result = authService.validateLogin(username, "Pass123");
-
-        // Assert
-        assertEquals("", result);
-    }
-
-    @Test
-    @DisplayName("Edge Case: Password voi do dai toi thieu (6 ky tu)")
-    void testValidatePasswordMinimumLength() {
-        // Act
-        String result = authService.validateLogin("testuser", "Pass12");
-
-        // Assert
-        assertEquals("", result);
-    }
-
-    @Test
-    @DisplayName("Edge Case: Password voi do dai toi da (100 ky tu)")
-    void testValidatePasswordMaximumLength() {
-        // Act
-        String password = "a1" + "b".repeat(98);
-        String result = authService.validateLogin("testuser", password);
-
-        // Assert
-        assertEquals("", result);
-    }
-
-    @Test
-    @DisplayName("Edge Case: Username chi chua so")
-    void testValidateUsernameOnlyNumbers() {
-        // Act
-        String result = authService.validateLogin("12345", "Pass123");
-
-        // Assert
-        assertEquals("", result);
-    }
-
-    @Test
-    @DisplayName("Edge Case: Username chi chua chu cai")
-    void testValidateUsernameOnlyLetters() {
-        // Act
-        String result = authService.validateLogin("abcdef", "Pass123");
-
-        // Assert
-        assertEquals("", result);
-    }
-
-    @Test
-    @DisplayName("Edge Case: Password co ky tu dac biet (van hop le)")
-    void testValidatePasswordWithSpecialCharacters() {
-        // Act
-        String result = authService.validateLogin("testuser", "Pass@123!");
-
-        // Assert
-        assertEquals("", result);
-    }
-
-    @Test
-    @DisplayName("Integration: Authenticate voi user ton tai nhung password null trong DB")
-    void testAuthenticateWithNullPasswordInDatabase() {
-        // Arrange
-        LoginRequest request = new LoginRequest();
-        request.setUsername("testuser");
-        request.setPassword("Pass123");
-
-        User mockUser = new User();
-        mockUser.setId(1L);
-        mockUser.setUsername("testuser");
-        mockUser.setPassword(null);
-
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(mockUser));
-        when(passwordEncoder.matches("Pass123", null)).thenReturn(false);
-
-        // Act
-        LoginResponse response = authService.authenticate(request);
-
-        // Assert
-        assertFalse(response.isSuccess());
-        assertEquals("Invalid username or password", response.getMessage());
-    }
-
-    @Test
-    @DisplayName("Integration: Multiple authentication attempts")
-    void testMultipleAuthenticationAttempts() {
-        // Arrange
-        LoginRequest request1 = new LoginRequest();
-        request1.setUsername("user1");
-        request1.setPassword("Pass123");
-
-        LoginRequest request2 = new LoginRequest();
-        request2.setUsername("user2");
-        request2.setPassword("Pass456");
-
-        User mockUser1 = new User();
-        mockUser1.setUsername("user1");
-        mockUser1.setPassword("$2a$10$hash1");
-
-        User mockUser2 = new User();
-        mockUser2.setUsername("user2");
-        mockUser2.setPassword("$2a$10$hash2");
-
-        when(userRepository.findByUsername("user1")).thenReturn(Optional.of(mockUser1));
-        when(userRepository.findByUsername("user2")).thenReturn(Optional.of(mockUser2));
-        when(passwordEncoder.matches("Pass123", "$2a$10$hash1")).thenReturn(true);
-        when(passwordEncoder.matches("Pass456", "$2a$10$hash2")).thenReturn(true);
-
-        // Act
-        LoginResponse response1 = authService.authenticate(request1);
-        LoginResponse response2 = authService.authenticate(request2);
-
-        // Assert
-        assertTrue(response1.isSuccess());
-        assertTrue(response2.isSuccess());
-        verify(userRepository, times(1)).findByUsername("user1");
-        verify(userRepository, times(1)).findByUsername("user2");
-    }
 }

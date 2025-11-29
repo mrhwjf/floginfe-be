@@ -121,7 +121,7 @@ class AuthControllerIntegrationTest {
         request.setPassword("Test123");
 
         when(authService.validateLogin("ab", "Test123"))
-                .thenReturn("Ten dang nhap phai tu 3 den 50 ky tu");
+                .thenReturn("Username must be between 3 and 50 characters");
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")
@@ -129,7 +129,7 @@ class AuthControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Ten dang nhap phai tu 3 den 50 ky tu"));
+                .andExpect(jsonPath("$.message").value("Username must be between 3 and 50 characters"));
 
         // Verify authenticate không được gọi khi validation fail
         verify(authService, never()).authenticate(any(LoginRequest.class));
@@ -144,7 +144,7 @@ class AuthControllerIntegrationTest {
         request.setPassword("Pass1");
 
         when(authService.validateLogin("testuser", "Pass1"))
-                .thenReturn("Mat khau phai tu 6 den 100 ky tu");
+                .thenReturn("Password must be between 6 and 100 characters");
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")
@@ -152,7 +152,7 @@ class AuthControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Mat khau phai tu 6 den 100 ky tu"));
+                .andExpect(jsonPath("$.message").value("Password must be between 6 and 100 characters"));
 
         // Verify
         verify(authService, never()).authenticate(any(LoginRequest.class));
@@ -167,7 +167,7 @@ class AuthControllerIntegrationTest {
         request.setPassword("Test123");
 
         when(authService.validateLogin("", "Test123"))
-                .thenReturn("Ten dang nhap khong duoc de trong");
+                .thenReturn("Username is required");
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")
@@ -175,7 +175,7 @@ class AuthControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Ten dang nhap khong duoc de trong"));
+                .andExpect(jsonPath("$.message").value("Username is required"));
     }
 
     @Test
@@ -187,7 +187,7 @@ class AuthControllerIntegrationTest {
         request.setPassword("Password");
 
         when(authService.validateLogin("testuser", "Password"))
-                .thenReturn("Mat khau phai chua it nhat mot chu cai va mot so");
+                .thenReturn("Password must contain at least one letter and one number");
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")
@@ -195,7 +195,7 @@ class AuthControllerIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Mat khau phai chua it nhat mot chu cai va mot so"));
+                .andExpect(jsonPath("$.message").value("Password must contain at least one letter and one number"));
     }
 
 
@@ -277,7 +277,7 @@ class AuthControllerIntegrationTest {
         request.setPassword("Test123");
 
         when(authService.validateLogin("ab", "Test123"))
-                .thenReturn("Ten dang nhap phai tu 3 den 50 ky tu");
+                .thenReturn("Username must be between 3 and 50 characters");
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")
