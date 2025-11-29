@@ -105,6 +105,46 @@
 
 	<build>
 		<plugins>
+			<!-- JaCoCo plugin for code coverage reports -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.10</version>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<rules>
+						<rule>
+							<element>BUNDLE</element>
+							<limits>
+								<limit>
+									<counter>INSTRUCTION</counter>
+									<value>COVEREDRATIO</value>
+									<minimum>0.80</minimum>
+								</limit>
+								<limit>
+									<counter>BRANCH</counter>
+									<value>COVEREDRATIO</value>
+									<minimum>0.70</minimum>
+								</limit>
+							</limits>
+						</rule>
+					</rules>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -119,6 +159,11 @@
 							<groupId>org.mapstruct</groupId>
 							<artifactId>mapstruct-processor</artifactId>
 							<version>1.6.3</version>
+						</path>
+						<path>
+							<groupId>org.hibernate.orm</groupId>
+							<artifactId>hibernate-processor</artifactId>
+							<version>7.1.8.Final</version>
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
@@ -151,6 +196,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			
 		</plugins>
 	</build>
 
