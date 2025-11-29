@@ -14,7 +14,12 @@ describe('Product Component Integration Tests (Form -> List)', () => {
 
     test('TC-INT-01: Tạo sản phẩm mới phải tự động cập nhật danh sách', async () => {
         // 1. SETUP MOCK CHO FETCH LẦN ĐẦU: Danh sách ban đầu trống
-        productService.getProducts.mockResolvedValueOnce([]);
+        productService.getProducts.mockResolvedValueOnce({
+            data: {
+                items: [],
+                totalPages: 0
+            }
+        });
 
         // 2. SETUP MOCK CHO CREATE: Tạo thành công một sản phẩm (có id để tránh warning key và hỗ trợ edit/delete sau này)
         const newProduct = { id: 101, name: 'LapTop Asus', price: 999999, quantity: 10, category: 'LAPTOP', description: 'A powerful laptop' };
@@ -22,7 +27,12 @@ describe('Product Component Integration Tests (Form -> List)', () => {
 
         // 3. SETUP MOCK CHO FETCH LẦN 2 (sau khi tạo): Trả về danh sách có sản phẩm mới
         // IMPORTANT: MockResolvedValueOnce thứ hai sẽ được dùng khi fetchProducts() chạy lại
-        productService.getProducts.mockResolvedValueOnce([newProduct]);
+        productService.getProducts.mockResolvedValueOnce({
+            data: {
+                items: [newProduct],
+                totalPages: 1
+            }
+        });
 
         render(<ProductDashboard />);
 
@@ -53,13 +63,23 @@ describe('Product Component Integration Tests (Form -> List)', () => {
         const existingProduct = { id: 55, name: 'LapTop Acer', price: 50000, quantity: 5, category: 'LAPTOP', description: 'An affordable laptop' };
 
         // 1. SETUP MOCK LẦN 1: Danh sách ban đầu có sản phẩm cũ
-        productService.getProducts.mockResolvedValueOnce([existingProduct]);
+        productService.getProducts.mockResolvedValueOnce({
+            data: {
+                items: [existingProduct],
+                totalPages: 1
+            }
+        });
 
         // 2. SETUP MOCK CHO DELETE: Service trả về thành công khi xóa
         productService.deleteProduct.mockResolvedValue({});
 
         // 3. SETUP MOCK LẦN 2: Sau khi xóa, danh sách trả về trống
-        productService.getProducts.mockResolvedValueOnce([]);
+        productService.getProducts.mockResolvedValueOnce({
+            data: {
+                items: [],
+                totalPages: 0
+            }
+        });
 
         render(<ProductDashboard />);
 
@@ -92,7 +112,12 @@ describe('Product Component Integration Tests (Form -> List)', () => {
         const updatedName = 'Bàn Phím Cơ (Đã Sale)';
 
         // 1. SETUP MOCK LẦN 1: Danh sách ban đầu có sản phẩm gốc
-        productService.getProducts.mockResolvedValueOnce([originalProduct]);
+        productService.getProducts.mockResolvedValueOnce({
+            data: {
+                items: [originalProduct],
+                totalPages: 1
+            }
+        });
 
         // 2. SETUP MOCK CHO UPDATE: Service trả về thành công khi cập nhật
         productService.updateProduct.mockResolvedValue({
@@ -101,7 +126,12 @@ describe('Product Component Integration Tests (Form -> List)', () => {
         });
 
         // 3. SETUP MOCK LẦN 2: Sau khi update, danh sách trả về dữ liệu mới
-        productService.getProducts.mockResolvedValueOnce([{ id: 20, name: updatedName, price: 1000000, quantity: 15, category: 'ACCESSORY', description: 'A mechanical keyboard' }]);
+        productService.getProducts.mockResolvedValueOnce({
+            data: {
+                items: [{ id: 20, name: updatedName, price: 1000000, quantity: 15, category: 'ACCESSORY', description: 'A mechanical keyboard' }],
+                totalPages: 1
+            }
+        });
         render(<ProductDashboard />);
 
         // Chờ đợi List component tải xong và hiển thị tên gốc

@@ -4,7 +4,13 @@ import { createProduct, updateProduct } from '../services/productService.js';
 import './ProductUI.css';
 
 const ProductForm = ({ onActionSuccess, editingProduct }) => {
-  const initialState = { name: '', price: 0, quantity: 0, category: '', description: '' };
+  const initialState = {
+    name: '',
+    price: 0,
+    quantity: 0,
+    category: (Array.isArray(VALID_CATEGORIES) && VALID_CATEGORIES.length > 0) ? VALID_CATEGORIES[0] : '',
+    description: ''
+  };
   const [product, setProduct] = useState(initialState);
   const [errors, setErrors] = useState({});
   const [serverMessage, setServerMessage] = useState('');
