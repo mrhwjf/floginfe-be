@@ -162,6 +162,53 @@ describe('Login Validation Tests', () => {
                 mock.restore();
             }
         });
+
+        test('Server: incorrect password (401) -> shows password error', async () => {
+            const mock = new AxiosMockAdapter(axios);
+            try {
+                mock.onPost('/api/auth/login').replyOnce(401, { message: 'Incorrect password' });
+
+                render(<LoginForm />);
+                const usernameInput = screen.getByTestId('username-input');
+                const passwordInput = screen.getByTestId('password-input');
+                const submitButton = screen.getByTestId('login-button');
+
+                fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+                // use a password that passes client-side validation (letters+numbers)
+                fireEvent.change(passwordInput, { target: { value: 'Wrong123' } });
+                fireEvent.click(submitButton);
+
+                await waitFor(() => {
+                    expect(screen.getByTestId('password-error')).toHaveTextContent('Incorrect password');
+                });
+            } finally {
+                mock.restore();
+            }
+        });
+
+        test('Server: username not found (404) -> shows server message in password-error', async () => {
+            const mock = new AxiosMockAdapter(axios);
+            try {
+                mock.onPost('/api/auth/login').replyOnce(404, { message: 'User not found' });
+
+                render(<LoginForm />);
+                const usernameInput = screen.getByTestId('username-input');
+                const passwordInput = screen.getByTestId('password-input');
+                const submitButton = screen.getByTestId('login-button');
+
+                fireEvent.change(usernameInput, { target: { value: 'no-such-user' } });
+                fireEvent.change(passwordInput, { target: { value: 'SomePass123' } });
+                fireEvent.click(submitButton);
+
+                await waitFor(() => {
+                    // Current component maps server error into password-error
+                    expect(screen.getByTestId('password-error')).toHaveTextContent('User not found');
+                });
+            } finally {
+                mock.restore();
+            }
+        });
+        
     });
 
 });

@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
     "test": "jest",
     "build:css": "postcss src/index.css -o public/tailwind.css",
     "dev:css": "postcss src/index.css -o public/tailwind.css --watch",
@@ -51,6 +53,7 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.3",
     "vite": "^7.2.2",
+    "cypress": "^12.17.0",
     "web-streams-polyfill": "^4.2.0"
   }
 }

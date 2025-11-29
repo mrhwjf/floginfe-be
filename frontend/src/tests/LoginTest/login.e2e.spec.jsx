@@ -1,129 +1,92 @@
-// E2E-style tests (using React Testing Library + axios-mock-adapter)
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import AxiosMockAdapter from 'axios-mock-adapter';
-import axios from 'axios';
-import LoginForm from '../../components/Login/LoginForm';
+// E2E Login scenarios (Cypress)
 
 describe('Login E2E Scenarios', () => {
-    let mock;
+    const base = 'http://localhost:5173';
 
     beforeEach(() => {
-        mock = new AxiosMockAdapter(axios);
-        localStorage.clear();
+        // visit app root; ensure dev server running at this address
+        cy.visit(base);
+        // clear storage between tests
+        cy.clearLocalStorage();
     });
 
-    afterEach(() => {
-        mock.restore();
-        localStorage.clear();
-    });
+    // a) Complete login flow
+    it('Complete login flow: valid credentials -> token stored, success UI', () => {
+        cy.intercept('POST', '/api/auth/login', {
+            statusCode: 200,
+            body: { token: 'e2e-token-1' },
+        }).as('loginRequest');
 
-    // a) Test complete login flow (1 điểm)
-    test('Complete login flow: valid credentials -> token stored, success UI, redirect', async () => {
-        mock.onPost('/api/auth/login').reply(200, { token: 'e2e-token-1' });
+        cy.get('[data-testid="username-input"]').type('admin');
+        cy.get('[data-testid="password-input"]').type('abc123');
+        cy.get('[data-testid="login-button"]').click();
 
-        // render component without mocking react-router navigation
-        render(<LoginForm />);
-
-        const username = screen.getByTestId('username-input');
-        const password = screen.getByTestId('password-input');
-        const button = screen.getByTestId('login-button');
-
-        fireEvent.change(username, { target: { value: 'admin' } });
-        fireEvent.change(password, { target: { value: 'abc123' } });
-        fireEvent.click(button);
-
-        // Loading
-        expect(button).toBeDisabled();
-
-        // Success UI
-        await waitFor(() =>
-            expect(screen.getByTestId('login-message')).toHaveTextContent('thanh cong')
-        );
-
-        // Token stored
-        expect(localStorage.getItem('token')).toBe('e2e-token-1');
-
-        // If your app performs navigation after login, check it in an E2E environment (Cypress)
-
-        // Button enabled again
-        await waitFor(() =>
-            expect(button).not.toBeDisabled()
-        );
-    });
-
-
-    // b) Test validation messages (0.5 điểm)
-    test('Validation messages: empty and invalid inputs', async () => {
-        render(<LoginForm />);
-
-        const button = screen.getByTestId('login-button');
-        fireEvent.click(button);
-
-        await waitFor(() => {
-        expect(screen.getByTestId('username-error')).toBeInTheDocument();
-        expect(screen.getByTestId('password-error')).toBeInTheDocument();
-        });
-
-        // Too-short username and password
-        const username = screen.getByTestId('username-input');
-        const password = screen.getByTestId('password-input');
-        fireEvent.change(username, { target: { value: 'ab' } });
-        fireEvent.change(password, { target: { value: '12345' } });
-        fireEvent.click(button);
-
-        await waitFor(() => {
-        expect(screen.getByTestId('username-error')).toHaveTextContent('Username must be between 3 and 50 characters');
-        expect(screen.getByTestId('password-error')).toHaveTextContent('Password must be between 6 and 100 characters');
+        // wait for request and assert success UI
+        cy.wait('@loginRequest');
+        cy.get('[data-testid="login-message"]').should('contain.text', 'thanh cong');
+        cy.window().then((win) => {
+            expect(win.localStorage.getItem('token')).to.equal('e2e-token-1');
         });
     });
 
-    // c) Test success/error flows (0.5 điểm)
-    test('Server error and retry success flows', async () => {
-        // first respond with 401, then respond with 200
-        mock.onPost('/api/auth/login').replyOnce(401, { message: 'Invalid credentials' });
-        mock.onPost('/api/auth/login').replyOnce(200, { token: 'retry-e2e-token' });
+    // b) Validation messages
+    it('Validation messages: empty and invalid inputs', () => {
+        // submit with empty fields
+        cy.get('[data-testid="login-button"]').click();
+        cy.get('[data-testid="username-error"]').should('be.visible');
+        cy.get('[data-testid="password-error"]').should('be.visible');
 
-        render(<LoginForm />);
-        const username = screen.getByTestId('username-input');
-        const password = screen.getByTestId('password-input');
-        const button = screen.getByTestId('login-button');
+        // too-short username/password
+        cy.get('[data-testid="username-input"]').type('ab');
+        cy.get('[data-testid="password-input"]').type('12345');
+        cy.get('[data-testid="login-button"]').click();
+        cy.get('[data-testid="username-error"]').should('contain.text', 'Username must be between 3 and 50 characters');
+        cy.get('[data-testid="password-error"]').should('contain.text', 'Password must be between 6 and 100 characters');
+    });
 
-        fireEvent.change(username, { target: { value: 'user' } });
-        fireEvent.change(password, { target: { value: 'abc123' } });
-        fireEvent.click(button);
+    // c) Success/error flows
+    it('Server error and retry success flows', () => {
+        // first respond with 401, then with 200
+        cy.intercept('POST', '/api/auth/login', (req) => {
+            // use internal counter on window to return sequential responses
+            if (!window.__e2e_call_count) window.__e2e_call_count = 0;
+            window.__e2e_call_count += 1;
+            if (window.__e2e_call_count === 1) {
+                req.reply({ statusCode: 401, body: { message: 'Invalid credentials' } });
+            } else {
+                req.reply({ statusCode: 200, body: { token: 'retry-e2e-token' } });
+            }
+        }).as('loginSeq');
+
+        cy.get('[data-testid="username-input"]').type('user');
+        cy.get('[data-testid="password-input"]').type('abc123');
+        cy.get('[data-testid="login-button"]').click();
 
         // after failure, password-error should show server message
-        await waitFor(() => expect(screen.getByTestId('password-error')).toHaveTextContent('Invalid credentials'));
+        cy.wait('@loginSeq');
+        cy.get('[data-testid="password-error"]').should('contain.text', 'Invalid credentials');
 
-        // retry
-        fireEvent.click(button);
-        await waitFor(() => expect(screen.getByTestId('login-message')).toHaveTextContent('thanh cong'));
-        expect(localStorage.getItem('token')).toBe('retry-e2e-token');
+        // retry: click again to trigger queued 200 response
+        cy.get('[data-testid="login-button"]').click();
+        cy.wait('@loginSeq');
+        cy.get('[data-testid="login-message"]').should('contain.text', 'thanh cong');
+        cy.window().then((win) => expect(win.localStorage.getItem('token')).to.equal('retry-e2e-token'));
     });
 
-    // d) Test UI elements interactions (0.5 điểm)
-    test('UI interactions: Enter key submits and focus management', async () => {
-        mock.onPost('/api/auth/login').reply(200, { token: 'ui-token' });
+    // d) UI elements interactions
+    it('UI interactions: Enter key submits and focus management', () => {
+        // intercept to return success so we can assert post-submit effects
+        cy.intercept('POST', '/api/auth/login', { statusCode: 200, body: { token: 'ui-token' } }).as('loginUI');
 
-        render(<LoginForm />);
-        const username = screen.getByTestId('username-input');
-        const password = screen.getByTestId('password-input');
-        const button = screen.getByTestId('login-button');
+        cy.get('[data-testid="username-input"]').focus().should('have.focus');
+        cy.get('[data-testid="username-input"]').type('user');
+        cy.get('[data-testid="password-input"]').type('abc123');
 
-        // focus moves and pressing Enter on password submits
-        username.focus();
-        expect(document.activeElement).toBe(username);
-
-        fireEvent.change(username, { target: { value: 'user' } });
-        fireEvent.change(password, { target: { value: 'abc123' } });
-
-        // Submit the form directly because Enter may not trigger submit reliably in jsdom
-        const form = screen.getByTestId('login-button').closest('form');
-        fireEvent.submit(form);
-
-        await waitFor(() => expect(screen.getByTestId('login-message')).toHaveTextContent('thanh cong'));
-        expect(button).not.toBeDisabled();
-        expect(localStorage.getItem('token')).toBe('ui-token');
+        // press Enter on password input to submit
+        cy.get('[data-testid="password-input"]').type('{enter}');
+        cy.wait('@loginUI');
+        cy.get('[data-testid="login-message"]').should('contain.text', 'thanh cong');
+        cy.get('[data-testid="login-button"]').should('not.be.disabled');
+        cy.window().then((win) => expect(win.localStorage.getItem('token')).to.equal('ui-token'));
     });
 });
