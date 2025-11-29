@@ -9,6 +9,10 @@ jobs:
   backend-tests:
     name: Backend Tests
     runs-on: ubuntu-latest
+    env:
+      DB_URL: jdbc:mysql://127.0.0.1:3306/floginfe?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      DB_USERNAME: root
+      DB_PASSWORD: root
     steps:
       - name: Checkout
         uses: actions/checkout@v4
