@@ -1,6 +1,5 @@
 package com.floginfe_be.backend.controller;
 
-
 import com.floginfe_be.backend.dto.request.LoginRequest;
 import com.floginfe_be.backend.dto.response.LoginResponse;
 import com.floginfe_be.backend.service.AuthService;
@@ -8,7 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth") // Endpoint chung cho Authentication
+@RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
 
     private final AuthService authService;
@@ -17,28 +17,22 @@ public class AuthController {
         this.authService = authService;
     }
 
-
-    @CrossOrigin(origins = "http://localhost:3000")
-    @PostMapping("/login") // Endpoint POST /api/auth/login
+    @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-
-        // Thực hiện validation đơn giản trước khi gọi service
+        // Validate input
         String validationError = authService.validateLogin(request.getUsername(), request.getPassword());
         if (!validationError.isEmpty()) {
-            LoginResponse errorResponse = new LoginResponse();
-            errorResponse.setSuccess(false);
-            errorResponse.setMessage(validationError);
+            LoginResponse errorResponse = new LoginResponse(false, validationError);
             return ResponseEntity.badRequest().body(errorResponse);
         }
 
-        // Gọi service để xử lý nghiệp vụ Login
+        // Authenticate user
         LoginResponse response = authService.authenticate(request);
-
-        if (response.isSuccess()) {
-            return ResponseEntity.ok(response);
-        } else {
-            // Trả về 401 Unauthorized nếu đăng nhập thất bại
+        
+        if (!response.isSuccess()) {
             return ResponseEntity.status(401).body(response);
         }
+        
+        return ResponseEntity.ok(response);
     }
 }

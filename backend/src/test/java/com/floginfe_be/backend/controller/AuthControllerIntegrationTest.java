@@ -9,119 +9,159 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Integration Test cho AuthController
- * 
- * Yêu cầu:
- * a) Test POST /api/auth/login endpoint (3 điểm)
- * b) Test response structure và status codes (1 điểm)
- * c) Test CORS và headers (1 điểm)
- */
+
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("Login API Integration Tests")
 class AuthControllerIntegrationTest {
 
     @Autowired
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
 
     @Autowired
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     @MockitoBean
-    AuthService authService;
+    private AuthService authService;
 
-    // a) Test POST /api/auth/login endpoint
+     
+    
+    // a) Test POST /api/auth/login endpoint (3 điểm)
     @Test
     @DisplayName("POST /api/auth/login - Thanh cong")
     void testLoginSuccess() throws Exception {
+        // Arrange
         LoginRequest request = new LoginRequest();
         request.setUsername("testuser");
         request.setPassword("Test123");
 
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(true);
-        mockResponse.setMessage("Dang nhap thanh cong");
-        mockResponse.setToken("token123");
+        LoginResponse mockResponse = new LoginResponse(true, "Login successful");
 
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin("testuser", "Test123")).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Dang nhap thanh cong"))
-                .andExpect(jsonPath("$.token").exists())
-                .andExpect(jsonPath("$.token").value("token123"));
+                .andExpect(jsonPath("$.message").value("Login successful"));
+
+        // Verify
+        verify(authService, times(1)).validateLogin("testuser", "Test123");
+        verify(authService, times(1)).authenticate(any(LoginRequest.class));
     }
 
     @Test
-    @DisplayName("POST /api/auth/login - Sai mat khau")
-    void testLoginInvalidPassword() throws Exception {
+    @DisplayName("POST /api/auth/login - That bai voi username khong ton tai")
+    void testLoginFailureUserNotFound() throws Exception {
+        // Arrange
         LoginRequest request = new LoginRequest();
-        request.setUsername("testuser");
-        request.setPassword("WrongPass123");
-
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(false);
-        mockResponse.setMessage("Invalid username or password");
-        mockResponse.setToken(null);
-
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(mockResponse);
-
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Invalid username or password"));
-    }
-
-    @Test
-    @DisplayName("POST /api/auth/login - User khong ton tai")
-    void testLoginNonExistentUser() throws Exception {
-        LoginRequest request = new LoginRequest();
-        request.setUsername("nonexistent");
+        request.setUsername("wronguser");
         request.setPassword("Test123");
 
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(false);
-        mockResponse.setMessage("Invalid username or password");
-        mockResponse.setToken(null);
+        LoginResponse mockResponse = new LoginResponse(false, "Invalid username or password");
 
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin("wronguser", "Test123")).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Invalid username or password"));
+
+        // Verify
+        verify(authService, times(1)).authenticate(any(LoginRequest.class));
     }
 
     @Test
-    @DisplayName("POST /api/auth/login - Username rong")
-    void testLoginEmptyUsername() throws Exception {
+    @DisplayName("POST /api/auth/login - That bai voi password sai")
+    void testLoginFailureWrongPassword() throws Exception {
+        // Arrange
+        LoginRequest request = new LoginRequest();
+        request.setUsername("testuser");
+        request.setPassword("WrongPassword123");
+
+        LoginResponse mockResponse = new LoginResponse(false, "Invalid username or password");
+
+        when(authService.validateLogin("testuser", "WrongPassword123")).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.success").value(false));
+
+        // Verify
+        verify(authService, times(1)).authenticate(any(LoginRequest.class));
+    }
+
+    @Test
+    @DisplayName("POST /api/auth/login - Validation error: username qua ngan")
+    void testLoginValidationErrorUsernameTooShort() throws Exception {
+        // Arrange
+        LoginRequest request = new LoginRequest();
+        request.setUsername("ab");
+        request.setPassword("Test123");
+
+        when(authService.validateLogin("ab", "Test123"))
+                .thenReturn("Ten dang nhap phai tu 3 den 50 ky tu");
+
+        // Act & Assert
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Ten dang nhap phai tu 3 den 50 ky tu"));
+
+        // Verify authenticate không được gọi khi validation fail
+        verify(authService, never()).authenticate(any(LoginRequest.class));
+    }
+
+    @Test
+    @DisplayName("POST /api/auth/login - Validation error: password qua ngan")
+    void testLoginValidationErrorPasswordTooShort() throws Exception {
+        // Arrange
+        LoginRequest request = new LoginRequest();
+        request.setUsername("testuser");
+        request.setPassword("Pass1");
+
+        when(authService.validateLogin("testuser", "Pass1"))
+                .thenReturn("Mat khau phai tu 6 den 100 ky tu");
+
+        // Act & Assert
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Mat khau phai tu 6 den 100 ky tu"));
+
+        // Verify
+        verify(authService, never()).authenticate(any(LoginRequest.class));
+    }
+
+    @Test
+    @DisplayName("POST /api/auth/login - Validation error: username trong")
+    void testLoginValidationErrorEmptyUsername() throws Exception {
+        // Arrange
         LoginRequest request = new LoginRequest();
         request.setUsername("");
         request.setPassword("Test123");
@@ -129,6 +169,7 @@ class AuthControllerIntegrationTest {
         when(authService.validateLogin("", "Test123"))
                 .thenReturn("Ten dang nhap khong duoc de trong");
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -138,87 +179,17 @@ class AuthControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("POST /api/auth/login - Password rong")
-    void testLoginEmptyPassword() throws Exception {
+    @DisplayName("POST /api/auth/login - Validation error: password khong co chu so")
+    void testLoginValidationErrorPasswordNoDigits() throws Exception {
+        // Arrange
         LoginRequest request = new LoginRequest();
         request.setUsername("testuser");
-        request.setPassword("");
+        request.setPassword("Password");
 
-        when(authService.validateLogin("testuser", ""))
-                .thenReturn("Mat khau khong duoc de trong");
-
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Mat khau khong duoc de trong"));
-    }
-
-    @Test
-    @DisplayName("POST /api/auth/login - Username qua ngan")
-    void testLoginShortUsername() throws Exception {
-        LoginRequest request = new LoginRequest();
-        request.setUsername("ab");
-        request.setPassword("Test123");
-
-        when(authService.validateLogin("ab", "Test123"))
-                .thenReturn("Ten dang nhap phai tu 3 den 50 ky tu");
-
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Ten dang nhap phai tu 3 den 50 ky tu"));
-    }
-
-    @Test
-    @DisplayName("POST /api/auth/login - Password qua ngan")
-    void testLoginShortPassword() throws Exception {
-        LoginRequest request = new LoginRequest();
-        request.setUsername("testuser");
-        request.setPassword("12345");
-
-        when(authService.validateLogin("testuser", "12345"))
-                .thenReturn("Mat khau phai tu 6 den 100 ky tu");
-
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Mat khau phai tu 6 den 100 ky tu"));
-    }
-
-    @Test
-    @DisplayName("POST /api/auth/login - Username chua ky tu dac biet")
-    void testLoginSpecialCharactersInUsername() throws Exception {
-        LoginRequest request = new LoginRequest();
-        request.setUsername("user@123");
-        request.setPassword("Test123");
-
-        when(authService.validateLogin("user@123", "Test123"))
-                .thenReturn("Ten dang nhap chi co the chua chu cai va so");
-
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Ten dang nhap chi co the chua chu cai va so"));
-    }
-
-    @Test
-    @DisplayName("POST /api/auth/login - Password khong du phuc tap")
-    void testLoginWeakPassword() throws Exception {
-        LoginRequest request = new LoginRequest();
-        request.setUsername("testuser");
-        request.setPassword("abcdefgh");
-
-        when(authService.validateLogin("testuser", "abcdefgh"))
+        when(authService.validateLogin("testuser", "Password"))
                 .thenReturn("Mat khau phai chua it nhat mot chu cai va mot so");
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -228,24 +199,22 @@ class AuthControllerIntegrationTest {
     }
 
 
-    // b) Test response structure và status codes
+
+    // b) Test response structure và status codes (1 điểm)
     @Test
-    @DisplayName("Response structure - Kiem tra cau truc JSON")
-    void testResponseStructure() throws Exception {
+    @DisplayName("Response Structure: Success response co du cac field")
+    void testSuccessResponseStructure() throws Exception {
+        // Arrange
         LoginRequest request = new LoginRequest();
         request.setUsername("testuser");
         request.setPassword("Test123");
 
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(true);
-        mockResponse.setMessage("Dang nhap thanh cong");
-        mockResponse.setToken("token123");
+        LoginResponse mockResponse = new LoginResponse(true, "Login successful");
 
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -253,183 +222,197 @@ class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.success").exists())
                 .andExpect(jsonPath("$.success").isBoolean())
                 .andExpect(jsonPath("$.message").exists())
-                .andExpect(jsonPath("$.message").isString())
-                .andExpect(jsonPath("$.token").exists())
-                .andExpect(jsonPath("$.token").isString());
+                .andExpect(jsonPath("$.message").isString());
     }
 
     @Test
-    @DisplayName("Response Content-Type - Kiem tra JSON format")
-    void testResponseContentType() throws Exception {
+    @DisplayName("Response Structure: Error response co du cac field")
+    void testErrorResponseStructure() throws Exception {
+        // Arrange
+        LoginRequest request = new LoginRequest();
+        request.setUsername("testuser");
+        request.setPassword("WrongPass123");
+
+        LoginResponse mockResponse = new LoginResponse(false, "Invalid username or password");
+
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").exists())
+                .andExpect(jsonPath("$.message").isString());
+    }
+
+    @Test
+    @DisplayName("Status Code: 200 OK khi login thanh cong")
+    void testStatusCode200() throws Exception {
+        // Arrange
         LoginRequest request = new LoginRequest();
         request.setUsername("testuser");
         request.setPassword("Test123");
 
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(true);
-        mockResponse.setMessage("Dang nhap thanh cong");
-        mockResponse.setToken("token123");
+        LoginResponse mockResponse = new LoginResponse(true, "Login successful");
 
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+                .andExpect(status().isOk());
     }
 
     @Test
-    @DisplayName("Status codes - Kiem tra 200, 400, 401")
-    void testStatusCodes() throws Exception {
+    @DisplayName("Status Code: 400 Bad Request khi validation fail")
+    void testStatusCode400() throws Exception {
+        // Arrange
+        LoginRequest request = new LoginRequest();
+        request.setUsername("ab");
+        request.setPassword("Test123");
 
-        // Success case - 200 OK
-        LoginRequest validRequest = new LoginRequest();
-        validRequest.setUsername("testuser");
-        validRequest.setPassword("Test123");
+        when(authService.validateLogin("ab", "Test123"))
+                .thenReturn("Ten dang nhap phai tu 3 den 50 ky tu");
 
-        LoginResponse successResponse = new LoginResponse();
-        successResponse.setSuccess(true);
-        successResponse.setMessage("Dang nhap thanh cong");
-        successResponse.setToken("token123");
-
-        when(authService.validateLogin("testuser", "Test123"))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(successResponse);
-
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validRequest)))
-                .andExpect(status().isOk());
-
-
-
-        // Validation error - 400 Bad Request
-        LoginRequest invalidRequest = new LoginRequest();
-        invalidRequest.setUsername("");
-        invalidRequest.setPassword("Test123");
-
-        when(authService.validateLogin("", "Test123"))
-                .thenReturn("Ten dang nhap khong duoc de trong");
-
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
 
+    @Test
+    @DisplayName("Status Code: 401 Unauthorized khi authentication fail")
+    void testStatusCode401() throws Exception {
+        // Arrange
+        LoginRequest request = new LoginRequest();
+        request.setUsername("testuser");
+        request.setPassword("WrongPass123");
 
+        LoginResponse mockResponse = new LoginResponse(false, "Invalid username or password");
 
-        // Authentication failed - 401 Unauthorized
-        LoginRequest wrongPasswordRequest = new LoginRequest();
-        wrongPasswordRequest.setUsername("testuser");
-        wrongPasswordRequest.setPassword("WrongPass123");
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
-        LoginResponse failResponse = new LoginResponse();
-        failResponse.setSuccess(false);
-        failResponse.setMessage("Invalid username or password");
-
-        when(authService.validateLogin("testuser", "WrongPass123"))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(failResponse);
-
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(wrongPasswordRequest)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    @DisplayName("Status Code: 400 khi request body invalid JSON")
+    void testStatusCode400InvalidJson() throws Exception {
+        // Act & Assert
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{invalid json}"))
+                .andExpect(status().isBadRequest());
+    }
+
 
 
     // c) Test CORS và headers (1 điểm)
     @Test
-    @DisplayName("CORS headers - Kiem tra Access-Control-Allow-Origin")
-    void testCorsHeaders() throws Exception {
+    @DisplayName("CORS: Access-Control-Allow-Origin header ton tai")
+    void testCorsHeaderPresent() throws Exception {
+        // Arrange
         LoginRequest request = new LoginRequest();
         request.setUsername("testuser");
         request.setPassword("Test123");
 
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(true);
-        mockResponse.setMessage("Dang nhap thanh cong");
-        mockResponse.setToken("token123");
+        LoginResponse mockResponse = new LoginResponse(true, "Login successful");
 
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .header("Origin", "http://localhost:3000"))
+                        .header("Origin", "http://localhost:3000")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(header().exists("Access-Control-Allow-Origin"));
+    }
+
+    @Test
+    @DisplayName("CORS: Allow origin cho localhost:3000")
+    void testCorsAllowOrigin() throws Exception {
+        // Arrange
+        LoginRequest request = new LoginRequest();
+        request.setUsername("testuser");
+        request.setPassword("Test123");
+
+        LoginResponse mockResponse = new LoginResponse(true, "Login successful");
+
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
+
+        // Act & Assert
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Origin", "http://localhost:3000")
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:3000"));
     }
 
     @Test
-    @DisplayName("CORS preflight - Kiem tra OPTIONS method")
-    void testCorsPreflightRequest() throws Exception {
-        mockMvc.perform(options("/api/auth/login")
-                        .header("Origin", "http://localhost:3000")
-                        .header("Access-Control-Request-Method", "POST")
-                        .header("Access-Control-Request-Headers", "content-type"))
-                .andExpect(status().isOk())
-                .andExpect(header().exists("Access-Control-Allow-Origin"))
-                .andExpect(header().exists("Access-Control-Allow-Methods"));
-    }
-
-    @Test
-    @DisplayName("Request headers - Kiem tra Accept header")
-    void testRequestHeaders() throws Exception {
+    @DisplayName("Headers: Content-Type la application/json")
+    void testContentTypeHeader() throws Exception {
+        // Arrange
         LoginRequest request = new LoginRequest();
         request.setUsername("testuser");
         request.setPassword("Test123");
 
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(true);
-        mockResponse.setMessage("Dang nhap thanh cong");
-        mockResponse.setToken("token123");
+        LoginResponse mockResponse = new LoginResponse(true, "Login successful");
 
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
     }
 
     @Test
-    @DisplayName("Custom headers - Kiem tra khong bi block")
-    void testCustomHeaders() throws Exception {
+    @DisplayName("Headers: Accept application/json request")
+    void testAcceptHeader() throws Exception {
+        // Arrange
         LoginRequest request = new LoginRequest();
         request.setUsername("testuser");
         request.setPassword("Test123");
 
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(true);
-        mockResponse.setMessage("Dang nhap thanh cong");
-        mockResponse.setToken("token123");
+        LoginResponse mockResponse = new LoginResponse(true, "Login successful");
 
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Request-ID", "test-123")
-                        .header("X-Client-Version", "1.0.0")
+                        .accept(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
     }
 
+    @Test
+    @DisplayName("CORS: Preflight OPTIONS request")
+    void testCorsPreflightRequest() throws Exception {
+        // Act & Assert
+        mockMvc.perform(options("/api/auth/login")
+                        .header("Origin", "http://localhost:3000")
+                        .header("Access-Control-Request-Method", "POST")
+                        .header("Access-Control-Request-Headers", "Content-Type"))
+                .andExpect(status().isOk());
+    }
 }

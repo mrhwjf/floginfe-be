@@ -13,22 +13,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Backend Mocking Test cho AuthController
- * 
- * Yêu cầu:
- * a) Mock AuthService với @MockitoBean (1 điểm)
- * b) Test controller với mocked service (1 điểm)
- * c) Verify mock interactions (0.5 điểm)
- */
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@DisplayName("Backend Mock Tests")
 class AuthControllerMockTest {
 
     @Autowired
@@ -41,116 +33,105 @@ class AuthControllerMockTest {
     private AuthService authService;
 
 
-    // a) Mock AuthService với @MockitoBean
+   
+    // a) Mock AuthService với @MockitoBean 
     @Test
     @DisplayName("Mock: AuthService tra ve response thanh cong")
     void testMockAuthServiceSuccess() throws Exception {
-        // Setup mock response
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(true);
-        mockResponse.setMessage("Success");
-        mockResponse.setToken("mock-token");
+        // Arrange 
+        LoginResponse mockResponse = new LoginResponse(true, "Login successful");
 
         // Mock behavior
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
         LoginRequest request = new LoginRequest();
-        request.setUsername("test");
-        request.setPassword("Pass123");
+        request.setUsername("testuser");
+        request.setPassword("Test123");
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.token").value("mock-token"));
+                .andExpect(jsonPath("$.message").value("Login successful"));
     }
 
     @Test
-    @DisplayName("Mock: AuthService tra ve loi validation")
+    @DisplayName("Mock: AuthService tra ve loi - username khong hop le")
     void testMockAuthServiceValidationError() throws Exception {
-        // Mock validation error
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("Username khong hop le");
+        // Arrange 
+        when(authService.validateLogin(anyString(), anyString()))
+                .thenReturn("Ten dang nhap phai tu 3 den 50 ky tu");
 
         LoginRequest request = new LoginRequest();
         request.setUsername("ab");
-        request.setPassword("Pass123");
+        request.setPassword("Test123");
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Username khong hop le"));
+                .andExpect(jsonPath("$.message").value("Ten dang nhap phai tu 3 den 50 ky tu"));
     }
 
     @Test
-    @DisplayName("Mock: AuthService tra ve loi dang nhap")
-    void testMockAuthServiceLoginFailure() throws Exception {
-        // Setup mock failure response
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(false);
-        mockResponse.setMessage("Invalid username or password");
-        mockResponse.setToken(null);
+    @DisplayName("Mock: AuthService tra ve loi - authentication that bai")
+    void testMockAuthServiceAuthenticationError() throws Exception {
+        // Arrange 
+        LoginResponse mockResponse = new LoginResponse(false, "Invalid username or password");
 
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
         LoginRequest request = new LoginRequest();
         request.setUsername("wronguser");
         request.setPassword("wrongpass");
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.success").value(false));
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Invalid username or password"));
     }
 
-
-
-
+   
     // b) Test controller với mocked service 
     @Test
     @DisplayName("Mock: Controller voi mocked service success")
     void testLoginWithMockedService() throws Exception {
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(true);
-        mockResponse.setMessage("Success");
-        mockResponse.setToken("mock-token");
+        // Arrange
+        LoginResponse mockResponse = new LoginResponse(true, "Login successful");
 
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any()))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"test\",\"password\":\"Pass123\"}"))
+                        .content("{\"username\":\"testuser\",\"password\":\"Test123\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.token").value("mock-token"));
+                .andExpect(jsonPath("$.message").value("Login successful"));
     }
 
     @Test
     @DisplayName("Mock: Controller xu ly nhieu request voi mock khac nhau")
     void testMultipleRequestsWithDifferentMocks() throws Exception {
-        // First request - success
-        LoginResponse successResponse = new LoginResponse();
-        successResponse.setSuccess(true);
-        successResponse.setMessage("Success");
-        successResponse.setToken("token-1");
+       
+        LoginResponse successResponse = new LoginResponse(true, "Login successful");
 
-        when(authService.validateLogin("user1", "Pass123"))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(successResponse);
+        when(authService.validateLogin("user1", "Pass123")).thenReturn("");
+        when(authService.authenticate(argThat(req ->
+                req != null &&
+                "user1".equals(req.getUsername()) &&
+                "Pass123".equals(req.getPassword())
+        ))).thenReturn(successResponse);
 
         LoginRequest request1 = new LoginRequest();
         request1.setUsername("user1");
@@ -160,17 +141,17 @@ class AuthControllerMockTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request1)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("token-1"));
+                .andExpect(jsonPath("$.success").value(true));
 
         // Second request - failure
-        LoginResponse failResponse = new LoginResponse();
-        failResponse.setSuccess(false);
-        failResponse.setMessage("Invalid credentials");
+        LoginResponse failResponse = new LoginResponse(false, "Invalid username or password");
 
-        when(authService.validateLogin("user2", "WrongPass"))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(failResponse);
+        when(authService.validateLogin("user2", "WrongPass")).thenReturn("");
+        when(authService.authenticate(argThat(req ->
+                req != null &&
+                "user2".equals(req.getUsername()) &&
+                "WrongPass".equals(req.getPassword())
+        ))).thenReturn(failResponse);
 
         LoginRequest request2 = new LoginRequest();
         request2.setUsername("user2");
@@ -184,8 +165,9 @@ class AuthControllerMockTest {
     }
 
     @Test
-    @DisplayName("Mock: Controller khong goi service khi validation fail")
-    void testControllerSkipsServiceOnValidationError() throws Exception {
+    @DisplayName("Mock: Controller khong goi authenticate khi validation fail")
+    void testControllerSkipsAuthenticateOnValidationError() throws Exception {
+        // Arrange
         when(authService.validateLogin("", "Pass123"))
                 .thenReturn("Ten dang nhap khong duoc de trong");
 
@@ -193,145 +175,131 @@ class AuthControllerMockTest {
         request.setUsername("");
         request.setPassword("Pass123");
 
+        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
 
-        // Verify authenticate không được gọi khi validation fail
+        // Assert
         verify(authService, never()).authenticate(any(LoginRequest.class));
     }
 
-
-
+   
     // c) Verify mock interactions 
     @Test
-    @DisplayName("Verify: Service được gọi đúng 1 lần")
+    @DisplayName("Verify: Service duoc goi dung 1 lan")
     void testVerifyServiceCalledOnce() throws Exception {
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(true);
-        mockResponse.setMessage("Success");
-        mockResponse.setToken("mock-token");
+        // Arrange
+        LoginResponse mockResponse = new LoginResponse(true, "Login successful");
 
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any()))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
+        // Act
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"test\",\"password\":\"Pass123\"}"))
+                        .content("{\"username\":\"testuser\",\"password\":\"Test123\"}"))
                 .andExpect(status().isOk());
 
-        verify(authService, times(1)).authenticate(any());
-        verify(authService, times(1)).validateLogin(any(String.class), any(String.class));
+        // Assert - Verify
+        verify(authService, times(1)).validateLogin(anyString(), anyString());
+        verify(authService, times(1)).authenticate(any(LoginRequest.class));
     }
 
     @Test
-    @DisplayName("Verify: Service được gọi với parameters đúng")
+    @DisplayName("Verify: Service duoc goi voi parameters dung")
     void testVerifyServiceCalledWithCorrectParams() throws Exception {
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(true);
-        mockResponse.setMessage("Success");
-        mockResponse.setToken("mock-token");
+        // Arrange
+        LoginResponse mockResponse = new LoginResponse(true, "Login successful");
 
-        when(authService.validateLogin("testuser", "Pass123"))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin("testuser", "Test123")).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
         LoginRequest request = new LoginRequest();
         request.setUsername("testuser");
-        request.setPassword("Pass123");
+        request.setPassword("Test123");
 
+        // Act
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        // Verify với parameters cụ thể
-        verify(authService).validateLogin("testuser", "Pass123");
+        // Assert
+        verify(authService).validateLogin("testuser", "Test123");
         verify(authService).authenticate(any(LoginRequest.class));
     }
 
     @Test
-    @DisplayName("Verify: Service không được gọi khi request invalid")
+    @DisplayName("Verify: Service khong duoc goi khi request invalid")
     void testVerifyServiceNotCalledOnInvalidRequest() throws Exception {
-        // Mock để xử lý null username/password
+        // Arrange 
         when(authService.validateLogin(any(), any()))
                 .thenReturn("Invalid request");
 
+        // Act
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"invalid\":\"json\"}"))
                 .andExpect(status().isBadRequest());
 
-        // Verify authenticate không được gọi
-        verify(authService, never()).authenticate(any());
+        // Assert 
+        verify(authService, never()).authenticate(any(LoginRequest.class));
     }
 
     @Test
-    @DisplayName("Verify: Service được gọi nhiều lần cho multiple requests")
+    @DisplayName("Verify: Service duoc goi nhieu lan cho multiple requests")
     void testVerifyServiceCalledMultipleTimes() throws Exception {
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(true);
-        mockResponse.setMessage("Success");
-        mockResponse.setToken("mock-token");
+        // Arrange
+        LoginResponse mockResponse = new LoginResponse(true, "Login successful");
 
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any()))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
-        // First request
+        // Act 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"user1\",\"password\":\"Pass123\"}"))
                 .andExpect(status().isOk());
 
-        // Second request
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"user2\",\"password\":\"Pass456\"}"))
                 .andExpect(status().isOk());
 
-        // Third request
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"user3\",\"password\":\"Pass789\"}"))
                 .andExpect(status().isOk());
 
-        // Verify được gọi đúng 3 lần
-        verify(authService, times(3)).authenticate(any());
-        verify(authService, times(3)).validateLogin(any(String.class), any(String.class));
+        // Assert 
+        verify(authService, times(3)).validateLogin(anyString(), anyString());
+        verify(authService, times(3)).authenticate(any(LoginRequest.class));
     }
 
     @Test
-    @DisplayName("Verify: Kiểm tra thứ tự gọi methods")
+    @DisplayName("Verify: Kiem tra thu tu goi methods")
     void testVerifyMethodCallOrder() throws Exception {
-        LoginResponse mockResponse = new LoginResponse();
-        mockResponse.setSuccess(true);
-        mockResponse.setMessage("Success");
-        mockResponse.setToken("mock-token");
+        // Arrange
+        LoginResponse mockResponse = new LoginResponse(true, "Login successful");
 
-        when(authService.validateLogin(any(String.class), any(String.class)))
-                .thenReturn("");
-        when(authService.authenticate(any(LoginRequest.class)))
-                .thenReturn(mockResponse);
+        when(authService.validateLogin(anyString(), anyString())).thenReturn("");
+        when(authService.authenticate(any(LoginRequest.class))).thenReturn(mockResponse);
 
         LoginRequest request = new LoginRequest();
-        request.setUsername("test");
-        request.setPassword("Pass123");
+        request.setUsername("testuser");
+        request.setPassword("Test123");
 
+        // Act
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        // Verify thứ tự gọi: validateLogin trước, authenticate sau
+        // Assert 
         var inOrder = inOrder(authService);
-        inOrder.verify(authService).validateLogin(any(String.class), any(String.class));
+        inOrder.verify(authService).validateLogin(anyString(), anyString());
         inOrder.verify(authService).authenticate(any(LoginRequest.class));
     }
 }
-
