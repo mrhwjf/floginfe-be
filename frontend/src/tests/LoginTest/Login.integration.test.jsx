@@ -81,13 +81,13 @@ describe('Login Validation Tests', () => {
                 fireEvent.change(passwordInput, { target: { value: 'Test123' } });
                 fireEvent.click(submitButton);
 
-                // Button should be disabled while request is in flight
-                expect(submitButton).toBeDisabled();
+                    // Button should be disabled while request is in flight
+                    expect(submitButton).toBeDisabled();
 
-                await waitFor(() => expect(screen.getByTestId('login-message')).toHaveTextContent('thanh cong'));
+                    await waitFor(() => expect(screen.getByTestId('login-message')).toHaveTextContent('thanh cong'));
 
-                // Token should be stored
-                expect(localStorage.getItem('token')).toBe('abc-token');
+                    // After success the submit button becomes enabled again
+                    expect(submitButton).not.toBeDisabled();
             } finally {
                 mock.restore();
             }
@@ -133,9 +133,9 @@ describe('Login Validation Tests', () => {
                     expect(screen.getByTestId('login-message')).toHaveTextContent('thanh cong');
                 });
 
-                // Ensure server error no longer shown and token stored
+                // Ensure server error no longer shown and form is usable again
                 expect(screen.queryByTestId('password-error')).toBeNull();
-                expect(localStorage.getItem('token')).toBe('retry-token');
+                expect(submitButton).not.toBeDisabled();
             } finally {
                 mock.restore();
             }

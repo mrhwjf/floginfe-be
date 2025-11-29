@@ -2,18 +2,20 @@ spring:
   application:
     name: backend
 
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
   datasource:
-    url: jdbc:h2:mem:flogindb;MODE=MYSQL;
-    driverClassName: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:mysql://localhost:3306/FLogin?useSSL=false&serverTimezone=UTC
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
     hibernate:
-      dialect: org.hibernate.dialect.H2Dialect
-      ddl-auto: validate 
+      dialect: org.hibernate.dialect.MySQLDialect
+      ddl-auto: update
+
+  # remove or disable H2 console now that MySQL is used
+  h2:
+    console:
+      enabled: false
+      path: /h2-console

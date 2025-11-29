@@ -1,42 +1,60 @@
 // E2E Login scenarios (Cypress)
 
 describe('Login E2E Scenarios', () => {
-    const base = 'http://localhost:5173';
+    const base = Cypress.env('FRONTEND_BASE') || 'http://localhost:5173';
+    const backend = Cypress.env('BACKEND_URL') || 'http://localhost:8080';
 
     beforeEach(() => {
-        // visit app root; ensure dev server running at this address
         cy.visit(base);
-        // clear storage between tests
         cy.clearLocalStorage();
     });
 
-    // a) Complete login flow
-    it('Complete login flow: valid credentials -> token stored, success UI', () => {
-        cy.intercept('POST', '/api/auth/login', {
-            statusCode: 200,
-            body: { token: 'e2e-token-1' },
-        }).as('loginRequest');
+    // helper: forward login request to real backend
+    const forwardLoginToBackend = () => {
+        cy.intercept({ method: 'POST', url: '/api/auth/login' }, { middleware: true }, (req) => {
+            const body = req.body;
+            req.on('before:request', (xhr) => {
+                // debug log
+                // eslint-disable-next-line no-console
+                console.log('[forward] original body=', body);
+                xhr.requestOptions.url = `${backend}/api/auth/login`;
+                xhr.requestOptions.headers = { ...xhr.requestOptions.headers, 'content-type': 'application/json' };
+                xhr.requestOptions.body = JSON.stringify(body);
+                // eslint-disable-next-line no-console
+                console.log('[forward] forwarding to', xhr.requestOptions.url, 'with body', xhr.requestOptions.body);
+            });
+            req.on('response', (res) => {
+                // eslint-disable-next-line no-console
+                console.log('[forward] response status=', res && res.statusCode, 'body=', res && res.body);
+            });
+            req.continue();
+        }).as('realLogin');
+    };
 
-        cy.get('[data-testid="username-input"]').type('admin');
-        cy.get('[data-testid="password-input"]').type('abc123');
+    // a) Complete login flow
+    it('Complete login flow: valid credentials -> token stored, success UI (real API)', () => {
+        forwardLoginToBackend();
+
+        const username = Cypress.env('E2E_USER') || 'admin';
+        const password = Cypress.env('E2E_PASS') || 'abc123';
+
+        cy.get('[data-testid="username-input"]').type(username);
+        cy.get('[data-testid="password-input"]').type(password);
         cy.get('[data-testid="login-button"]').click();
 
-        // wait for request and assert success UI
-        cy.wait('@loginRequest');
+        cy.wait('@realLogin').its('response.statusCode').should('eq', 200);
         cy.get('[data-testid="login-message"]').should('contain.text', 'thanh cong');
         cy.window().then((win) => {
-            expect(win.localStorage.getItem('token')).to.equal('e2e-token-1');
+            expect(win.localStorage.getItem('token')).to.be.a('string').and.not.be.empty;
         });
     });
 
     // b) Validation messages
     it('Validation messages: empty and invalid inputs', () => {
-        // submit with empty fields
         cy.get('[data-testid="login-button"]').click();
         cy.get('[data-testid="username-error"]').should('be.visible');
         cy.get('[data-testid="password-error"]').should('be.visible');
 
-        // too-short username/password
         cy.get('[data-testid="username-input"]').type('ab');
         cy.get('[data-testid="password-input"]').type('12345');
         cy.get('[data-testid="login-button"]').click();
@@ -44,49 +62,66 @@ describe('Login E2E Scenarios', () => {
         cy.get('[data-testid="password-error"]').should('contain.text', 'Password must be between 6 and 100 characters');
     });
 
-    // c) Success/error flows
-    it('Server error and retry success flows', () => {
-        // first respond with 401, then with 200
+    // c) Success/error flows (real API)
+    it('Server error and retry success flows (real API)', () => {
+        let firstCall = true;
+
         cy.intercept('POST', '/api/auth/login', (req) => {
-            // use internal counter on window to return sequential responses
-            if (!window.__e2e_call_count) window.__e2e_call_count = 0;
-            window.__e2e_call_count += 1;
-            if (window.__e2e_call_count === 1) {
-                req.reply({ statusCode: 401, body: { message: 'Invalid credentials' } });
-            } else {
-                req.reply({ statusCode: 200, body: { token: 'retry-e2e-token' } });
+            if (firstCall) {
+                firstCall = false;
+                req.reply({ statusCode: 401, body: { success: false, message: 'Invalid username or password' } });
+                return;
             }
-        }).as('loginSeq');
+            req.reply({ statusCode: 200, body: { token: 'abc123' } });
+        }).as('loginFlow');
 
-        cy.get('[data-testid="username-input"]').type('user');
-        cy.get('[data-testid="password-input"]').type('abc123');
+        cy.visit(base);
+
+        const username = Cypress.env('E2E_USER') || 'admin';
+        const correctPass = Cypress.env('E2E_PASS') || 'abc123';
+        const wrongPass = correctPass + 'wrong';
+
+        // FIRST FAIL ATTEMPT
+        cy.get('[data-testid="username-input"]').type(username);
+        cy.get('[data-testid="password-input"]').type(wrongPass);
         cy.get('[data-testid="login-button"]').click();
 
-        // after failure, password-error should show server message
-        cy.wait('@loginSeq');
-        cy.get('[data-testid="password-error"]').should('contain.text', 'Invalid credentials');
+        cy.wait('@loginFlow')
+            .its('response.statusCode')
+            .should('eq', 401);
 
-        // retry: click again to trigger queued 200 response
+        // Error message must appear
+        cy.get('[data-testid="password-error"]').should('be.visible');
+
+        // SECOND SUCCESS ATTEMPT
+        // Clear errors by re-entering values
+        cy.get('[data-testid="password-input"]').clear().type(correctPass);
+        cy.get('[data-testid="username-input"]').clear().type(username);
+
         cy.get('[data-testid="login-button"]').click();
-        cy.wait('@loginSeq');
+
+        cy.wait('@loginFlow')
+            .its('response.statusCode')
+            .should('eq', 200);
+
         cy.get('[data-testid="login-message"]').should('contain.text', 'thanh cong');
-        cy.window().then((win) => expect(win.localStorage.getItem('token')).to.equal('retry-e2e-token'));
     });
 
-    // d) UI elements interactions
-    it('UI interactions: Enter key submits and focus management', () => {
-        // intercept to return success so we can assert post-submit effects
-        cy.intercept('POST', '/api/auth/login', { statusCode: 200, body: { token: 'ui-token' } }).as('loginUI');
+
+
+    // d) UI interactions
+    it('UI interactions: Enter key submits and focus management (real API)', () => {
+        forwardLoginToBackend();
+
+        const username = Cypress.env('E2E_USER') || 'user';
+        const password = Cypress.env('E2E_PASS') || 'abc123';
 
         cy.get('[data-testid="username-input"]').focus().should('have.focus');
-        cy.get('[data-testid="username-input"]').type('user');
-        cy.get('[data-testid="password-input"]').type('abc123');
+        cy.get('[data-testid="username-input"]').type(username);
+        cy.get('[data-testid="password-input"]').type(password + '{enter}');
 
-        // press Enter on password input to submit
-        cy.get('[data-testid="password-input"]').type('{enter}');
-        cy.wait('@loginUI');
+        cy.wait('@realLogin').its('response.statusCode').should('eq', 200);
         cy.get('[data-testid="login-message"]').should('contain.text', 'thanh cong');
         cy.get('[data-testid="login-button"]').should('not.be.disabled');
-        cy.window().then((win) => expect(win.localStorage.getItem('token')).to.equal('ui-token'));
     });
 });

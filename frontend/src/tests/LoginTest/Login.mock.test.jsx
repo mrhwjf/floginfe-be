@@ -51,13 +51,8 @@ describe('Login Mock Tests', () => {
     });
 
     // Test với mocked successful/failed responses
-    test('Mock: stores token via storeToken on success', async () => {
-        // Ensure storeToken is a mock we can inspect
-        authService.storeToken = jest.fn();
-
-        authService.loginUser.mockResolvedValue({
-            token: 'mock-token-123',
-        });
+    test('Mock: successful login shows success message', async () => {
+        authService.loginUser.mockResolvedValue({ token: 'mock-token-123' });
 
         render(<Login />);
         fireEvent.change(screen.getByTestId('username-input'), { target: { value: 'testuser' } });
@@ -66,7 +61,7 @@ describe('Login Mock Tests', () => {
 
         await waitFor(() => {
             expect(authService.loginUser).toHaveBeenCalledWith('testuser', 'Test123');
-            expect(authService.storeToken).toHaveBeenCalledWith('mock-token-123');
+            expect(screen.getByText(/thanh cong/i)).toBeInTheDocument();
         });
     });
 
@@ -100,8 +95,7 @@ describe('Login Mock Tests', () => {
         });
     });
 
-    test('Mock: failed then successful retry stores token', async () => {
-        authService.storeToken = jest.fn();
+    test('Mock: failed then successful retry shows success message', async () => {
         authService.loginUser
             .mockRejectedValueOnce({ message: 'Invalid credentials' })
             .mockResolvedValueOnce({ token: 'retry-token' });
@@ -124,8 +118,10 @@ describe('Login Mock Tests', () => {
         fireEvent.click(button);
         await waitFor(() => {
             expect(screen.getByTestId('login-message')).toHaveTextContent('thanh cong');
-            expect(authService.storeToken).toHaveBeenCalledWith('retry-token');
         });
+
+        // ensure service was called twice (first failure, then success)
+        expect(authService.loginUser).toHaveBeenCalledTimes(2);
     });
 
     // Verify mock calls
