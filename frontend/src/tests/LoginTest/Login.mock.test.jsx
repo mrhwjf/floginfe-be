@@ -1,10 +1,16 @@
 // ============ Mock external dependencies cho Login component:================
 
-import { render, screen, fireEvent, waitFor} from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Login from '../../components/Login/LoginForm';
 import * as authService from '../../services/authService';
 
 jest.mock('../../services/authService');
+
+jest.mock("react-router-dom", () => ({
+    ...jest.requireActual("react-router-dom"),
+    useNavigate: () => jest.fn(),
+}));
+
 
 describe('Login Mock Tests', () => {
     beforeEach(() => {
@@ -16,22 +22,22 @@ describe('Login Mock Tests', () => {
             message: 'thanh cong',
             user: { username: 'testuser' }
         });
-        render (<Login />);
-        fireEvent.change (screen.getByTestId('username-input'), {
-            target: { value: 'testuser' } 
+        render(<Login />);
+        fireEvent.change(screen.getByTestId('username-input'), {
+            target: { value: 'testuser' }
         });
-        fireEvent.change (screen.getByTestId('password-input'), {
+        fireEvent.change(screen.getByTestId('password-input'), {
             target: { value: 'Test123' }
         });
         fireEvent.click(screen.getByTestId('login-button'));
-        await waitFor (() => {
-            expect (authService.loginUser).toHaveBeenCalledWith('testuser', 'Test123');
-            expect (screen.getByText(/thanh cong/i)).toBeInTheDocument();
+        await waitFor(() => {
+            expect(authService.loginUser).toHaveBeenCalledWith('testuser', 'Test123');
+            expect(screen.getByText(/thanh cong/i)).toBeInTheDocument();
         });
     });
     test('Mock: Login that bai', async () => {
         authService.loginUser.mockRejectedValue({
-        message: 'Invalid credentials'
+            message: 'Invalid credentials'
         });
         render(<Login />);
         fireEvent.change(screen.getByTestId('username-input'), {

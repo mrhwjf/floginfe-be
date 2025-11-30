@@ -3,6 +3,15 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import LoginForm from '../../components/Login/LoginForm';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
+
+const LOGIN_API_URL = 'http://localhost:8080/api/auth/login';
+
+jest.mock("react-router-dom", () => ({
+    ...jest.requireActual("react-router-dom"),
+    useNavigate: () => jest.fn(),
+}));
+
+
 describe('Login Validation Tests', () => {
     beforeEach(() => {
         localStorage.clear();
@@ -10,8 +19,8 @@ describe('Login Validation Tests', () => {
     afterEach(() => {
         localStorage.clear();
     });
-  
-  // ========== INTEGRATION TESTS  ==========
+
+    // ========== INTEGRATION TESTS  ==========
 
     describe("Login Component Integration Tests", () => {
 
@@ -22,7 +31,7 @@ describe('Login Validation Tests', () => {
             fireEvent.click(submitButton);
             await waitFor(() => {
                 expect(screen.getByTestId("username-error"))
-                .toBeInTheDocument();
+                    .toBeInTheDocument();
             });
         });
         test("Goi API khi submit form hop le", async () => {
@@ -39,7 +48,7 @@ describe('Login Validation Tests', () => {
             fireEvent.click(submitButton);
             await waitFor(() => {
                 expect(screen.getByTestId("login-message"))
-                .toHaveTextContent("thanh cong");
+                    .toHaveTextContent("thanh cong");
             });
         });
 
@@ -81,13 +90,13 @@ describe('Login Validation Tests', () => {
                 fireEvent.change(passwordInput, { target: { value: 'Test123' } });
                 fireEvent.click(submitButton);
 
-                    // Button should be disabled while request is in flight
-                    expect(submitButton).toBeDisabled();
+                // Button should be disabled while request is in flight
+                expect(submitButton).toBeDisabled();
 
-                    await waitFor(() => expect(screen.getByTestId('login-message')).toHaveTextContent('thanh cong'));
+                await waitFor(() => expect(screen.getByTestId('login-message')).toHaveTextContent('thanh cong'));
 
-                    // After success the submit button becomes enabled again
-                    expect(submitButton).not.toBeDisabled();
+                // After success the submit button becomes enabled again
+                expect(submitButton).not.toBeDisabled();
             } finally {
                 mock.restore();
             }
@@ -109,8 +118,8 @@ describe('Login Validation Tests', () => {
             const mock = new AxiosMockAdapter(axios);
             try {
                 // First response: reject, then accept on retry
-                mock.onPost('/api/auth/login').replyOnce(401, { message: 'Invalid credentials' });
-                mock.onPost('/api/auth/login').replyOnce(200, { token: 'retry-token' });
+                mock.onPost(LOGIN_API_URL).replyOnce(401, { message: 'Invalid credentials' });
+                mock.onPost(LOGIN_API_URL).replyOnce(200, { token: 'retry-token' });
 
                 render(<LoginForm />);
                 const usernameInput = screen.getByTestId('username-input');
@@ -166,7 +175,7 @@ describe('Login Validation Tests', () => {
         test('Server: incorrect password (401) -> shows password error', async () => {
             const mock = new AxiosMockAdapter(axios);
             try {
-                mock.onPost('/api/auth/login').replyOnce(401, { message: 'Incorrect password' });
+                mock.onPost(LOGIN_API_URL).replyOnce(401, { message: 'Incorrect password' });
 
                 render(<LoginForm />);
                 const usernameInput = screen.getByTestId('username-input');
@@ -189,7 +198,7 @@ describe('Login Validation Tests', () => {
         test('Server: username not found (404) -> shows server message in password-error', async () => {
             const mock = new AxiosMockAdapter(axios);
             try {
-                mock.onPost('/api/auth/login').replyOnce(404, { message: 'User not found' });
+                mock.onPost(LOGIN_API_URL).replyOnce(404, { message: 'User not found' });
 
                 render(<LoginForm />);
                 const usernameInput = screen.getByTestId('username-input');
@@ -208,7 +217,7 @@ describe('Login Validation Tests', () => {
                 mock.restore();
             }
         });
-        
+
     });
 
 });
