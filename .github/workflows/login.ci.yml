@@ -158,8 +158,12 @@ jobs:
           cd frontend
           nohup npm run dev -- --host 0.0.0.0 --port 5173 > ../frontend-dev.log 2>&1 &
 
+      # FIX: Add a short sleep and increase wait-on timeout to 3 minutes
       - name: Wait for backend and frontend startup
-        run: npx --yes wait-on http://127.0.0.1:8080/api/auth/login http://127.0.0.1:5173
+        run: |
+          echo "Giving services a moment to spin up before waiting..."
+          sleep 5 
+          npx --yes wait-on -t 180000 http://127.0.0.1:8080/api/auth/login http://127.0.0.1:5173
 
       - name: Run Cypress Login E2E test
         working-directory: frontend
