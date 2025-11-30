@@ -1,10 +1,10 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ProductDashboard from '../components/ProductDashboard';
-import * as productService from '../services/productService';
+import ProductDashboard from '../../components/ProductDashboard';
+import * as productService from '../../services/productService';
 
 // Mock Service API: Bắt buộc
-jest.mock('../services/productService');
+jest.mock('../../services/productService');
 
 describe('Product Component Integration Tests (Form -> List)', () => {
     beforeEach(() => {

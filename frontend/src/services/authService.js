@@ -27,7 +27,3 @@ export const loginUser = async (arg1, arg2) => {
     throw error;
   }
 };
-
-// NOTE: token helpers were intentionally removed — this client does not
-// persist or attach authentication tokens. Server-side authentication is
-// handled separately and the client treats login as a stateless action.

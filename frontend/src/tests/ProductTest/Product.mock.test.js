@@ -1,12 +1,12 @@
 import '@testing-library/jest-dom';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
-import ProductForm from '../components/ProductForm';
-import ProductList from '../components/ProductList';
-import * as productService from '../services/productService';
+import ProductForm from '../../components/ProductForm';
+import ProductList from '../../components/ProductList';
+import * as productService from '../../services/productService';
 
 // BƯỚC QUAN TRỌNG: Mock toàn bộ module productService
-jest.mock('../services/productService');
+jest.mock('../../services/productService');
 
 // Thiết lập dọn dẹp mock giữa các test
 beforeEach(() => {

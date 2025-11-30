@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { validateUsername, validatePassword } from "../../utils/validation";
 
-import { loginUser, storeToken } from "../../services/authService";
+import { loginUser } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 
 const LoginForm = () => {

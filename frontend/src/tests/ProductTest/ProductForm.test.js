@@ -2,24 +2,24 @@
 
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ProductForm from '../components/ProductForm';
+import ProductForm from '../../components/ProductForm';
 
 // Import hàm validation (sẽ mock)
-import { validateProduct } from '../utils/productValidation'; 
+import { validateProduct } from '../../utils/productValidation';
 
 // MOCK HÀM VALIDATEPRODUCT: kiểm soát kết quả validation
-jest.mock('../utils/productValidation', () => ({
+jest.mock('../../utils/productValidation', () => ({
   validateProduct: jest.fn(),
 }));
 
 // Định nghĩa một test case thất bại (RED Phase)
 describe('ProductForm Component Validation Handling', () => {
-  
+
   test('TC-RED-11: Nên hiển thị thông báo lỗi khi validateProduct trả về lỗi', async () => {
-    
+
     // 1. MOCK: Thiết lập validateProduct trả về lỗi Name rỗng
     validateProduct.mockReturnValue({
-        name: 'Tên sản phẩm không được để trống'
+      name: 'Tên sản phẩm không được để trống'
     });
 
     // Giả định form có các input sau (Cần thêm data-testid vào component)
@@ -27,7 +27,7 @@ describe('ProductForm Component Validation Handling', () => {
 
     // 2. Giao diện: Tìm nút Submit (Cần data-testid="submit-product-btn")
     const submitButton = screen.getByRole('button', { name: /Lưu/i });
-    
+
     // 3. Tương tác: Nhấn nút Submit
     fireEvent.click(submitButton);
 
@@ -39,5 +39,5 @@ describe('ProductForm Component Validation Handling', () => {
     const nameError = await screen.findByTestId('name-error');
     expect(nameError).toHaveTextContent('Tên sản phẩm không được để trống');
   });
-  
+
 });

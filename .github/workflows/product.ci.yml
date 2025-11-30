@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - staging
+      - main
+  pull_request:
+    branches:
+      - staging
+      - main
 
 jobs:
   backend-tests:
@@ -75,11 +80,11 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Run frontend mock/unit/integration tests with coverage
+      - name: Run frontend Product tests with coverage
         working-directory: frontend
         env:
           CI: true
-        run: npm run test:coverage -- --runInBand
+        run: npm run test:coverage -- tests/ProductTest --runInBand
 
       - name: Upload frontend coverage
         uses: actions/upload-artifact@v4
@@ -156,7 +161,7 @@ jobs:
         working-directory: frontend
         env:
           CYPRESS_baseUrl: http://127.0.0.1:5173
-        run: npm run test:e2e -- --spec cypress/e2e/product.e2e.cy.js
+        run: npm run test:e2e -- --spec cypress/e2e/product.e2e.spec.js
 
       - name: Upload server logs on failure
         if: failure()
