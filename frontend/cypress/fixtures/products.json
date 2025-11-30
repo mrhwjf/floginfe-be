@@ -1,0 +1,26 @@
+[
+	{
+		"id": 1,
+		"name": "Laptop Dell XPS",
+		"price": 600000,
+		"quantity": 20,
+		"category": "LAPTOP",
+		"description": "Hiệu năng cao, thiết kế mỏng nhẹ."
+	},
+	{
+		"id": 2,
+		"name": "Điện thoại Samsung Galaxy",
+		"price": 800000,
+		"quantity": 12,
+		"category": "SMARTPHONE",
+		"description": "Màn hình sắc nét, camera chất lượng."
+	},
+	{
+		"id": 3,
+		"name": "Máy In Canon",
+		"price": 220000,
+		"quantity": 30,
+		"category": "PRINTER",
+		"description": "In ấn nhanh chóng, tiết kiệm mực."
+	}
+]

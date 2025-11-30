@@ -1,14 +1,20 @@
-import LoginForm from './components/Login/LoginForm'
-import './App.css'
+// App.js
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import ProductDashboard from './components/ProductDashboard.jsx';
+
+const PRODUCT_DASHBOARD_PATH = '/dashboard';
 
 function App() {
-
-  return (
-    <div className='App'>
-      <h1>Flogin - Đăng nhập</h1>
-      <LoginForm/>
-    </div>
-  )
+	return (
+		<Router>
+			<Routes>
+				<Route path={PRODUCT_DASHBOARD_PATH} element={
+					<div style={{ padding: 16 }}>
+						<ProductDashboard />
+					</div>} />
+			</Routes>
+		</Router>
+	);
 }
 
-export default App
+export default App;
