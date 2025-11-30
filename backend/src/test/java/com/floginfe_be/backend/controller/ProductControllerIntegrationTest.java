@@ -2,13 +2,13 @@ package com.floginfe_be.backend.controller;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.floginfe_be.backend.constants.Categories;
@@ -16,7 +16,6 @@ import com.floginfe_be.backend.dto.request.ProductRequest;
 import com.floginfe_be.backend.dto.response.PagedResponse;
 import com.floginfe_be.backend.dto.response.ProductDto;
 import com.floginfe_be.backend.service.ProductService;
-import com.floginfe_be.backend.service.impl.ProductServiceImpl;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -26,6 +25,7 @@ import static org.mockito.Mockito.*;
 import java.util.List;
 
 @WebMvcTest(ProductController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @DisplayName("Product API Integration Test")
 class ProductControllerIntegrationTest {
 
@@ -35,7 +35,7 @@ class ProductControllerIntegrationTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 
-	@MockBean
+	@MockitoBean
 	private ProductService productService;
 
 	private ProductRequest buildRequest(String name, double price, int quantity, Categories category,

@@ -1,0 +1,189 @@
+name: Login CI (backend + frontend + e2e)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend-tests:
+    name: Backend tests and JaCoCo
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: FLogin
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Cache Maven local repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Wait for MySQL to be ready
+        run: |
+          echo "Waiting for MySQL to initialize..."
+          for i in {1..30}; do
+            if docker exec $(docker ps -q -f ancestor=mysql:8) mysqladmin ping -uroot -proot --silent; then
+              echo "MySQL is up"
+              break
+            fi
+            echo "waiting... ($i)"
+            sleep 2
+          done
+
+      - name: Run backend tests with JaCoCo
+        run: |
+          ./mvnw -B clean test jacoco:report
+
+      - name: Upload JaCoCo report (HTML)
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jacoco-report
+          path: backend/target/site/jacoco
+
+      - name: Upload JaCoCo exec + surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-artifacts
+          path: |
+            backend/target/jacoco.exec
+            backend/target/surefire-reports
+            backend/target/failsafe-reports
+            backend/backend.log
+
+  frontend-tests:
+    name: Frontend unit & integration tests (Jest)
+    runs-on: ubuntu-latest
+    needs: backend-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install frontend deps
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run Jest tests with coverage
+        run: |
+          cd frontend
+          npm run test -- --coverage
+
+      - name: Upload Jest coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-jest-coverage
+          path: frontend/coverage
+
+  e2e-login:
+    name: E2E Login (Cypress)
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+    env:
+      CYPRESS_E2E_USER: admin
+      CYPRESS_E2E_PASS: abc123
+      CYPRESS_BACKEND_URL: http://localhost:8080
+      FRONTEND_BASE: http://localhost:5173
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: FLogin
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java (for running backend)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install frontend deps
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build frontend (Vite)
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Start backend (Spring Boot) in background
+        run: |
+          cd backend
+          nohup ./mvnw -DskipTests spring-boot:run > backend.log 2>&1 &
+          echo "Waiting for backend to be ready..."
+          # give MySQL a few seconds to accept connections
+          sleep 5
+          npx wait-on http://localhost:8080 || (sleep 2 && npx wait-on http://localhost:8080)
+
+      - name: Serve frontend build (vite preview) in background
+        run: |
+          cd frontend
+          npx vite preview --port 5173 > preview.log 2>&1 &
+          echo "Waiting for frontend to be ready..."
+          npx wait-on http://localhost:5173
+
+      - name: Run Cypress E2E (login spec)
+        run: |
+          cd frontend
+          npx cypress run --spec "cypress/e2e/login.e2e.spec.jsx" --env CYPRESS_BACKEND_URL=http://localhost:8080,CYPRESS_E2E_USER=admin,CYPRESS_E2E_PASS=abc123 --config baseUrl=http://localhost:5173,video=true
+
+      - name: Upload Cypress artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-artifacts
+          path: |
+            frontend/cypress/videos
+            frontend/cypress/screenshots
+            backend/backend.log
+            frontend/preview.log

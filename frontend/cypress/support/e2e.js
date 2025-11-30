@@ -1,12 +1,14 @@
-// Cypress support file kept minimal for now.
-
 const API_BASE_URL = Cypress.env('backendUrl') ?? 'http://localhost:8080';
 const FETCH_PRODUCTS_API = `${API_BASE_URL}/api/products`;
 const DEFAULT_CATEGORY = 'LAPTOP';
 
 export const PRODUCT_DASHBOARD_PATH = '/dashboard';
 
-export const DEFAULT_TIMEOUT = 10000;
+export const LOGIN_PATH = '/auth/login';
+
+export const LOGIN_API = `${API_BASE_URL}/api/auth/login`;
+
+export const DEFAULT_TIMEOUT = 5000;
 
 const DEFAULT_PRICE = 999000;
 const DEFAULT_QUANTITY = 5;

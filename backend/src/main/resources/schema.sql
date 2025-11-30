@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS floginfe CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE floginfe;
+CREATE DATABASE IF NOT EXISTS flogin CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE flogin;
 
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS products;
