@@ -160,7 +160,7 @@ jobs:
         run: |
           echo "Giving services a moment to spin up before waiting..."
           sleep 5 
-          npx --yes wait-on -t 180000 http://127.0.0.1:8080/api/products http://127.0.0.1:5173
+          npx --yes wait-on -t 180000 tcp:127.0.0.1:8080 http://127.0.0.1:5173
 
       - name: Run Cypress E2E tests
         working-directory: frontend
