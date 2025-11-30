@@ -1,7 +1,7 @@
 // src/components/Login/LoginForm.jsx
 import React, { useState } from "react";
 import { validateUsername, validatePassword } from "../../utils/validation";
-import { loginUser, storeToken } from "../../services/authService";
+import { loginUser } from "../../services/authService";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
@@ -31,7 +31,6 @@ const LoginForm = () => {
 
     try {
       const response = await loginUser(username.trim(), password.trim());
-      storeToken(response.token);
       setSuccessMessage('thanh cong');
     } catch (err) {
       let message = "Login failed";

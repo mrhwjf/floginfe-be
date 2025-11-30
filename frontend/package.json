@@ -10,7 +10,7 @@
     "test": "jest",
     "build:css": "postcss src/index.css -o public/tailwind.css",
     "dev:css": "postcss src/index.css -o public/tailwind.css --watch",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

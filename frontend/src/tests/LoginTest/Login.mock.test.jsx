@@ -13,7 +13,7 @@ describe('Login Mock Tests', () => {
     test('Mock: Login thanh cong', async () => {
         authService.loginUser.mockResolvedValue({
             success: true,
-            token: 'mock-token-123',
+            message: 'thanh cong',
             user: { username: 'testuser' }
         });
         render (<Login />);
@@ -52,7 +52,7 @@ describe('Login Mock Tests', () => {
 
     // Test với mocked successful/failed responses
     test('Mock: successful login shows success message', async () => {
-        authService.loginUser.mockResolvedValue({ token: 'mock-token-123' });
+        authService.loginUser.mockResolvedValue({ success: true, message: 'thanh cong' });
 
         render(<Login />);
         fireEvent.change(screen.getByTestId('username-input'), { target: { value: 'testuser' } });
@@ -67,7 +67,7 @@ describe('Login Mock Tests', () => {
 
     test('Mock: loading state while login is in flight', async () => {
         // Simulate a delayed resolved promise
-        authService.loginUser.mockImplementationOnce(() => new Promise((res) => setTimeout(() => res({ token: 'd-token' }), 60)));
+        authService.loginUser.mockImplementationOnce(() => new Promise((res) => setTimeout(() => res({ success: true }), 60)));
 
         render(<Login />);
         const username = screen.getByTestId('username-input');
@@ -98,7 +98,7 @@ describe('Login Mock Tests', () => {
     test('Mock: failed then successful retry shows success message', async () => {
         authService.loginUser
             .mockRejectedValueOnce({ message: 'Invalid credentials' })
-            .mockResolvedValueOnce({ token: 'retry-token' });
+            .mockResolvedValueOnce({ success: true, message: 'thanh cong' });
 
         render(<Login />);
         const username = screen.getByTestId('username-input');

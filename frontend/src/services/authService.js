@@ -26,14 +26,6 @@ export const loginUser = async (arg1, arg2) => {
   }
 };
 
-export const storeToken = (token) => {
-  localStorage.setItem('token', token);
-};
-
-export const getToken = () => {
-  return localStorage.getItem('token');
-};
-
-export const clearToken = () => {
-  localStorage.removeItem('token');
-};
+// NOTE: token helpers were intentionally removed — this client does not
+// persist or attach authentication tokens. Server-side authentication is
+// handled separately and the client treats login as a stateless action.
