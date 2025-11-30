@@ -6,10 +6,10 @@ import * as authService from '../../services/authService';
 
 jest.mock('../../services/authService');
 
-jest.mock("react-router-dom", () => ({
-    ...jest.requireActual("react-router-dom"),
+jest.mock('react-router-dom', () => ({
     useNavigate: () => jest.fn(),
-}));
+    Link: ({ children, ...props }) => children || null,
+}), { virtual: true });
 
 
 describe('Login Mock Tests', () => {

@@ -1,15 +1,16 @@
 // src/tests/LoginForm.test.tsx
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import LoginForm from '../../components/Login/LoginForm';
-import axios from 'axios';
-import AxiosMockAdapter from 'axios-mock-adapter';
+import * as authService from '../../services/authService';
+jest.mock('../../services/authService');
 
-const LOGIN_API_URL = 'http://localhost:8080/api/auth/login';
+const LOGIN_API_URL = '/api/auth/login';
 
-jest.mock("react-router-dom", () => ({
-    ...jest.requireActual("react-router-dom"),
+jest.mock('react-router-dom', () => ({
     useNavigate: () => jest.fn(),
-}));
+    // provide a minimal Link component for rendering in tests
+    Link: ({ children, ...props }) => children || null,
+}), { virtual: true });
 
 
 describe('Login Validation Tests', () => {
@@ -54,32 +55,25 @@ describe('Login Validation Tests', () => {
 
         // Test form submission và API calls
         test('Server rejects valid credentials -> shows server error', async () => {
-            const mock = new AxiosMockAdapter(axios);
-            try {
-                mock.onPost('/api/auth/login').replyOnce(401, { message: 'Invalid credentials' });
+            authService.loginUser.mockRejectedValueOnce(new Error('Invalid credentials'));
 
-                render(<LoginForm />);
-                const usernameInput = screen.getByTestId('username-input');
-                const passwordInput = screen.getByTestId('password-input');
-                const submitButton = screen.getByTestId('login-button');
+                    render(<LoginForm />);
+                    const usernameInput = screen.getByTestId('username-input');
+                    const passwordInput = screen.getByTestId('password-input');
+                    const submitButton = screen.getByTestId('login-button');
 
-                fireEvent.change(usernameInput, { target: { value: 'testuser' } });
-                fireEvent.change(passwordInput, { target: { value: 'Test123' } });
-                fireEvent.click(submitButton);
+                    fireEvent.change(usernameInput, { target: { value: 'testuser' } });
+                    fireEvent.change(passwordInput, { target: { value: 'Test123' } });
+                    fireEvent.click(submitButton);
 
-                await waitFor(() => {
-                    expect(screen.getByTestId('password-error')).toHaveTextContent('Invalid credentials');
-                });
-            } finally {
-                mock.restore();
-            }
+                    await waitFor(() => {
+                        expect(screen.getByTestId('password-error')).toHaveTextContent('Invalid credentials');
+                    });
         });
 
         test('Shows loading state and stores token on success', async () => {
-            const mock = new AxiosMockAdapter(axios);
-            try {
-                // Delay the response so we can assert loading state
-                mock.onPost('/api/auth/login').replyOnce(() => new Promise((resolve) => setTimeout(() => resolve([200, { token: 'abc-token' }]), 50)));
+            // Delay the response so we can assert loading state
+            authService.loginUser.mockImplementationOnce(() => new Promise((resolve) => setTimeout(() => resolve({ token: 'abc-token' }), 50)));
 
                 render(<LoginForm />);
                 const usernameInput = screen.getByTestId('username-input');
@@ -97,9 +91,6 @@ describe('Login Validation Tests', () => {
 
                 // After success the submit button becomes enabled again
                 expect(submitButton).not.toBeDisabled();
-            } finally {
-                mock.restore();
-            }
         });
 
         // Test error handling và success messages
@@ -115,11 +106,10 @@ describe('Login Validation Tests', () => {
         });
 
         test('Clears server error after successful retry', async () => {
-            const mock = new AxiosMockAdapter(axios);
-            try {
                 // First response: reject, then accept on retry
-                mock.onPost(LOGIN_API_URL).replyOnce(401, { message: 'Invalid credentials' });
-                mock.onPost(LOGIN_API_URL).replyOnce(200, { token: 'retry-token' });
+                authService.loginUser
+                    .mockRejectedValueOnce(new Error('Invalid credentials'))
+                    .mockResolvedValueOnce({ token: 'retry-token' });
 
                 render(<LoginForm />);
                 const usernameInput = screen.getByTestId('username-input');
@@ -145,15 +135,10 @@ describe('Login Validation Tests', () => {
                 // Ensure server error no longer shown and form is usable again
                 expect(screen.queryByTestId('password-error')).toBeNull();
                 expect(submitButton).not.toBeDisabled();
-            } finally {
-                mock.restore();
-            }
-        });
+            });
 
         test('Success message has correct styling', async () => {
-            const mock = new AxiosMockAdapter(axios);
-            try {
-                mock.onPost('/api/auth/login').replyOnce(200, { token: 'style-token' });
+                authService.loginUser.mockResolvedValueOnce({ token: 'style-token' });
                 render(<LoginForm />);
                 const usernameInput = screen.getByTestId('username-input');
                 const passwordInput = screen.getByTestId('password-input');
@@ -167,15 +152,10 @@ describe('Login Validation Tests', () => {
                 const msg = screen.getByTestId('login-message');
                 // With Tailwind we expect a utility class for green text
                 expect(msg).toHaveClass('text-green-600');
-            } finally {
-                mock.restore();
-            }
-        });
+            });
 
         test('Server: incorrect password (401) -> shows password error', async () => {
-            const mock = new AxiosMockAdapter(axios);
-            try {
-                mock.onPost(LOGIN_API_URL).replyOnce(401, { message: 'Incorrect password' });
+                authService.loginUser.mockRejectedValueOnce(new Error('Incorrect password'));
 
                 render(<LoginForm />);
                 const usernameInput = screen.getByTestId('username-input');
@@ -190,15 +170,10 @@ describe('Login Validation Tests', () => {
                 await waitFor(() => {
                     expect(screen.getByTestId('password-error')).toHaveTextContent('Incorrect password');
                 });
-            } finally {
-                mock.restore();
-            }
         });
 
         test('Server: username not found (404) -> shows server message in password-error', async () => {
-            const mock = new AxiosMockAdapter(axios);
-            try {
-                mock.onPost(LOGIN_API_URL).replyOnce(404, { message: 'User not found' });
+                authService.loginUser.mockRejectedValueOnce(new Error('User not found'));
 
                 render(<LoginForm />);
                 const usernameInput = screen.getByTestId('username-input');
@@ -213,9 +188,6 @@ describe('Login Validation Tests', () => {
                     // Current component maps server error into password-error
                     expect(screen.getByTestId('password-error')).toHaveTextContent('User not found');
                 });
-            } finally {
-                mock.restore();
-            }
         });
 
     });
