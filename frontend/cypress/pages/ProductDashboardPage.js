@@ -26,69 +26,77 @@ const clearAndType = (selector, value) => {
 	cy.get(selector).clear().type(String(value));
 };
 
-export const productDashboardPage = {
+class ProductDashboardPage {
+	constructor() {
+		this.selectors = selectors;
+	}
+
 	visit() {
 		cy.visit(PRODUCT_DASHBOARD_PATH);
-		cy.get(selectors.table).should('be.visible');
-	},
+		cy.get(this.selectors.table).should('be.visible');
+	}
 
 	expectRowCount(expected) {
 		if (expected === 0) {
-			cy.get(selectors.row).should('have.length', 0);
+			cy.get(this.selectors.row).should('have.length', 0);
 			return;
 		}
 
-		cy.get(selectors.row, { timeout: DEFAULT_TIMEOUT }).should('have.length', expected);
-	},
+		cy.get(this.selectors.row, { timeout: DEFAULT_TIMEOUT }).should('have.length', expected);
+	}
 
 	fillForm(product) {
-		cy.get(selectors.form).should('be.visible');
-		clearAndType(selectors.nameInput, product.name);
-		clearAndType(selectors.priceInput, product.price);
-		clearAndType(selectors.quantityInput, product.quantity);
-		cy.get(selectors.categorySelect).select(product.category);
-		clearAndType(selectors.descriptionInput, product.description);
-	},
+		cy.get(this.selectors.form).should('be.visible');
+		clearAndType(this.selectors.nameInput, product.name);
+		clearAndType(this.selectors.priceInput, product.price);
+		clearAndType(this.selectors.quantityInput, product.quantity);
+		cy.get(this.selectors.categorySelect).select(product.category);
+		clearAndType(this.selectors.descriptionInput, product.description);
+	}
 
 	setSearchTerm(value) {
-		cy.get(selectors.searchInput).clear().type(value);
-	},
+		cy.get(this.selectors.searchInput).clear().type(value);
+	}
 
 	applyFilters() {
-		cy.get(selectors.applyFiltersButton).click();
-		cy.get(selectors.table).should('be.visible');
-	},
+		cy.get(this.selectors.applyFiltersButton).click();
+		cy.get(this.selectors.table).should('be.visible');
+	}
 
 	searchByName(name) {
 		this.setSearchTerm(name);
 		this.applyFilters();
-	},
+	}
 
 	submit() {
-		cy.get(selectors.submitButton).click();
-	},
+		cy.get(this.selectors.submitButton).click();
+	}
 
 	selectRowByName(name) {
 		return cy
-			.contains(selectors.rowNameCell, name, { timeout: DEFAULT_TIMEOUT })
-			.parents(selectors.row);
-	},
+			.contains(this.selectors.rowNameCell, name, { timeout: DEFAULT_TIMEOUT })
+			.parents(this.selectors.row);
+	}
 
 	expectPagination({ current, total }) {
 		const normalizedTotal = total ?? 1;
 		cy
-			.get(selectors.paginationStatus)
+			.get(this.selectors.paginationStatus)
 			.should('contain.text', `Page ${current} of ${normalizedTotal}`);
-	},
+	}
 
 	openEditById(id) {
 		cy.get(`[data-testid="edit-${id}"]`).click();
-	},
+	}
 
 	deleteById(id) {
 		cy.get(`[data-testid="delete-${id}"]`).click();
-	},
+	}
+
 	wait() {
 		cy.wait(DEFAULT_TIMEOUT);
 	}
-};
+}
+
+export const productDashboardPage = new ProductDashboardPage();
+export default ProductDashboardPage;
