@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+const API_AUTH_URL = 'http://localhost:8080/api/auth'; // Giả định API endpoint
+
 /**
  * Authenticates user with username and password
  * @param {{username: string, password: string}} credentials
@@ -16,7 +18,7 @@ export const loginUser = async (arg1, arg2) => {
       : (arg1 || {});
 
   try {
-    const response = await axios.post('/api/auth/login', credentials);
+    const response = await axios.post(`${API_AUTH_URL}/login`, credentials);
     return response.data;
   } catch (error) {
     if (error && error.response && error.response.data && error.response.data.message) {

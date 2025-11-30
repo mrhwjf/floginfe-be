@@ -2,11 +2,17 @@
 import '@testing-library/jest-dom';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
+import { TextEncoder, TextDecoder } from 'util';
+
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 // Use axios-mock-adapter in Jest environment to mock API calls instead of MSW.
 const mock = new AxiosMockAdapter(axios);
 
-mock.onPost('/api/auth/login').reply(async (config) => {
+const loginEndpointMatcher = /\/api\/auth\/login$/;
+
+mock.onPost(loginEndpointMatcher).reply(async (config) => {
   // small artificial delay so UI has time to show loading state in tests
   await new Promise((r) => setTimeout(r, 20));
   try {
@@ -25,11 +31,11 @@ mock.onPost('/api/auth/login').reply(async (config) => {
 
 // Provide a no-op alert implementation to avoid jsdom "Not implemented" errors
 if (typeof globalThis.alert === 'undefined') {
-  globalThis.alert = () => {};
+  globalThis.alert = () => { };
 }
 
 afterEach(() => {
   mock.resetHistory();
 });
 
-export {};
+export { };

@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { validateUsername, validatePassword } from "../../utils/validation";
 import { loginUser, storeToken } from "../../services/authService";
+import { useNavigate } from "react-router-dom";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
@@ -9,6 +10,8 @@ const LoginForm = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
+
+  const navigate = useNavigate();
 
   const validate = () => {
     const usernameError = validateUsername(username);
@@ -33,6 +36,9 @@ const LoginForm = () => {
       const response = await loginUser(username.trim(), password.trim());
       storeToken(response.token);
       setSuccessMessage('thanh cong');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 5000);
     } catch (err) {
       let message = "Login failed";
       if (err && err.message) {
@@ -46,7 +52,8 @@ const LoginForm = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <form onSubmit={handleSubmit} className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-md p-6"
+        data-testid="login-form">
         {successMessage && (
           <p data-testid="login-message" className="text-green-600 mb-4">{successMessage}</p>
         )}
@@ -96,7 +103,7 @@ const LoginForm = () => {
         </div>
       </form>
     </div>
-    
+
   );
 };
 

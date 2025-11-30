@@ -1,6 +1,8 @@
+import { LOGIN_PATH } from '../support/e2e';
+
 class LoginPage {
   visit() {
-    cy.visit('/');
+    cy.visit(LOGIN_PATH);
   }
 
   fillUsername(username) {
@@ -28,4 +30,4 @@ class LoginPage {
   }
 }
 
-module.exports = new LoginPage();
+export default new LoginPage();
